@@ -7,4 +7,4 @@ A collection of UI-led product concepts and AI solution ideas for Life Sciences 
 - Competitive Intelligence
 
 ## Notes
-Most concepts in this repository are UI prototypes and product explorations created using Lovable.
+Most concepts in this repository are UI prototypes and product explorations
