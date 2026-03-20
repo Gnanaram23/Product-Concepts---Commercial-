@@ -163,23 +163,6 @@ All powered by a unified metadata layer:
 
 ---
 
-## 📁 Suggested Repo Structure
-
-cortex/  
-├── README.md  
-├── docs/  
-│   ├── PRD.md  
-│   ├── Concept.md  
-│   ├── Architecture.md  
-├── src/  
-│   ├── agents/  
-│   ├── metadata/  
-│   ├── execution/  
-├── examples/  
-│   ├── sample_queries.md  
-└── assets/  
-
----
 
 ## 🤝 Contribution
 
