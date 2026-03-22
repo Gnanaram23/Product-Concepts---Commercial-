@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PharmaAction Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#F4F5F7;color:#1A1A2E;font-size:14px}
+button,input,select{font-family:'Inter',sans-serif}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#C5C8D4;border-radius:10px}
+
+/* ── TOKENS ── */
+:root{
+  --pri:#4361EE;--pri-dk:#3451D1;--pri-lt:#EEF2FF;--pri-md:#C7D2FE;
+  --grn:#10B981;--grn-lt:#ECFDF5;--amb:#F59E0B;--amb-lt:#FFFBEB;
+  --red:#EF4444;--red-lt:#FEF2F2;--vio:#7C3AED;--vio-lt:#F5F3FF;
+  --ink:#1A1A2E;--ink2:#374151;--ink3:#6B7280;--ink4:#9CA3AF;
+  --sur:#FFFFFF;--sur2:#F9F8F5;--bdr:#E5E7EB;
+}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;min-height:100vh}
+.screen{display:none;flex:1;flex-direction:column}
+.screen.on{display:flex;flex:1;flex-direction:column}
+
+/* ── TOPNAV ── */
+#nav{background:#fff;border-bottom:1px solid var(--bdr);height:54px;display:flex;align-items:center;padding:0 20px;gap:12px;position:sticky;top:0;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.nav-logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--pri),var(--pri-dk));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px}
+.nav-brand{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.3px}
+.nav-sub{font-size:9px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--pri)}
+.nav-search{flex:1;max-width:300px;display:flex;align-items:center;gap:8px;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:6px 12px}
+.nav-search input{background:none;border:none;outline:none;font-size:12.5px;color:var(--ink);width:100%}
+.nav-spacer{flex:1}
+.mod-toggle{display:flex;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:9px;padding:3px;gap:2px}
+.mod-btn{padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--ink3);transition:all .15s}
+.mod-btn.on{background:var(--pri);color:#fff;box-shadow:0 2px 6px rgba(67,97,238,.35)}
+.nav-bell{width:32px;height:32px;border-radius:8px;background:var(--sur2);border:1.5px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:14px}
+.nav-bell-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red);border:2px solid #fff}
+.nav-user{display:flex;align-items:center;gap:7px;background:var(--sur2);border:1.5px solid var(--bdr);border-radius:8px;padding:4px 10px;cursor:pointer}
+.nav-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--pri),var(--vio));color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+
+/* ── PORTAL ── */
+#portal{background:#fff;align-items:center;justify-content:center;min-height:100vh;position:relative;overflow:hidden}
+.p-grid{position:absolute;inset:0;background-image:radial-gradient(#E5E7EB 1px,transparent 1px);background-size:24px 24px;opacity:.7}
+.p-blob1{position:absolute;top:-10%;right:-5%;width:500px;height:500px;border-radius:50%;background:radial-gradient(rgba(67,97,238,.08),transparent 70%)}
+.p-blob2{position:absolute;bottom:-10%;left:-5%;width:400px;height:400px;border-radius:50%;background:radial-gradient(rgba(124,58,237,.07),transparent 70%)}
+.p-content{position:relative;text-align:center;padding:60px 24px}
+.p-logo{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--pri),var(--vio));display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:800;margin:0 auto 20px;box-shadow:0 6px 24px rgba(67,97,238,.4)}
+.p-h1{font-size:42px;font-weight:800;color:var(--ink);letter-spacing:-1px;line-height:1.1;margin-bottom:12px}
+.p-h1 span{background:linear-gradient(135deg,var(--pri),var(--vio));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.p-sub{color:var(--ink3);font-size:15px;max-width:400px;margin:0 auto 44px;line-height:1.65}
+.p-cards{display:flex;gap:20px;justify-content:center}
+.p-card{width:268px;border-radius:16px;padding:28px 24px;text-align:left;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.p-card:hover{transform:translateY(-3px)}
+.p-card-icon{font-size:34px;margin-bottom:12px}
+.p-card-title{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px}
+.p-card-sub{font-size:12.5px;line-height:1.55;margin-bottom:14px}
+.p-card-chips{display:flex;flex-wrap:wrap;gap:5px}
+.p-chip{border-radius:99px;padding:2px 9px;font-size:10px;font-weight:700;border:1px solid}
+.p-card-arrow{position:absolute;bottom:16px;right:16px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.p-footer{margin-top:40px;color:#C5C8D4;font-size:11px;letter-spacing:.5px}
+
+/* ── MODULE LAYOUT ── */
+.mod-layout{display:flex;flex:1;overflow:hidden;min-height:0}
+.sidebar{width:220px;background:#fff;border-right:1px solid var(--bdr);display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;min-height:0}
+.sb-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:var(--ink4);padding:16px 12px 6px}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:8px;margin:1px 8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--ink2);transition:all .14s;border-left:2.5px solid transparent}
+.sb-item:hover{background:var(--sur2)}
+.sb-item.on{background:var(--pri-lt);color:var(--pri);font-weight:600;border-left-color:var(--pri)}
+.sb-icon{font-size:14px;width:18px;text-align:center}
+.sb-divider{border:none;border-top:1px solid var(--bdr);margin:8px 0}
+.sb-drug{display:flex;align-items:center;gap:8px;padding:6px 11px;margin:1px 8px;cursor:pointer;border-radius:7px;font-size:12.5px;color:var(--ink2);transition:background .12s}
+.sb-drug:hover{background:var(--sur2)}
+.sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-stat{padding:8px 12px}
+.sb-stat-row{margin-bottom:10px}
+.sb-stat-label{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:4px}
+.main-area{flex:1;overflow-y:auto;max-height:calc(100vh - 54px);min-height:0}
+
+/* ── CARDS ── */
+.card{background:#fff;border:1.5px solid var(--bdr);border-radius:13px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .18s}
+.card:hover{box-shadow:0 5px 20px rgba(0,0,0,.07)}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card-title{font-size:14px;font-weight:700;color:var(--ink)}
+.sec-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.4px}
+.sec-sub{font-size:12.5px;color:var(--ink4);margin-top:3px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-family:'Inter',sans-serif;transition:all .14s;white-space:nowrap}
+.btn:hover{filter:brightness(1.07);transform:translateY(-1px)}
+.btn-pri{background:linear-gradient(135deg,var(--pri),var(--pri-dk));color:#fff;padding:8px 16px;font-size:13px;box-shadow:0 2px 8px rgba(67,97,238,.3)}
+.btn-dark{background:linear-gradient(135deg,#1A1A2E,#374151);color:#fff;padding:8px 16px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.btn-ghost{background:transparent;color:var(--ink3);border:1.5px solid var(--bdr);padding:7px 13px;font-size:12px}
+.btn-soft{background:var(--pri-lt);color:var(--pri);border:1px solid var(--pri-md);padding:7px 13px;font-size:12px}
+.btn-grn{background:var(--grn-lt);color:#047857;border:1px solid #A7F3D0;padding:7px 13px;font-size:12px}
+.btn-red{background:var(--red-lt);color:var(--red);border:1px solid #FCA5A5;padding:7px 13px;font-size:12px}
+.btn-sm{padding:5px 11px;font-size:11.5px;border-radius:7px}
+.btn-xs{padding:3px 8px;font-size:11px;border-radius:6px}
+
+/* ── TAGS ── */
+.tag{display:inline-flex;align-items:center;gap:4px;border-radius:99px;padding:2px 8px;font-size:11px;font-weight:600;border:1px solid;white-space:nowrap}
+.tag-pri{background:var(--pri-lt);color:var(--pri);border-color:var(--pri-md)}
+.tag-grn{background:var(--grn-lt);color:#059669;border-color:#A7F3D0}
+.tag-amb{background:var(--amb-lt);color:#B45309;border-color:#FDE68A}
+.tag-red{background:var(--red-lt);color:var(--red);border-color:#FCA5A5}
+.tag-vio{background:var(--vio-lt);color:var(--vio);border-color:#DDD6FE}
+.tag-blu{background:#EFF6FF;color:#2563EB;border-color:#BFDBFE}
+.tag-nav{background:#F1F5F9;color:#334155;border-color:#CBD5E1}
+.tag-dot{width:5px;height:5px;border-radius:50%;display:inline-block}
+
+/* ── FORMS ── */
+.field{display:flex;flex-direction:column;gap:5px}
+.field-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3)}
+.inp,.sel{border:1.5px solid var(--bdr);border-radius:8px;padding:8px 12px;font-size:13px;background:#fff;color:var(--ink);font-family:'Inter',sans-serif;width:100%;outline:none;transition:border-color .15s}
+.inp:focus,.sel:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(67,97,238,.12)}
+
+/* ── PROGRESS ── */
+.prog-track{background:#F3F4F6;border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;transition:width .4s}
+
+/* ── TABLES ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{padding:10px 13px;text-align:left;font-size:11px;font-weight:600;color:var(--ink4);background:var(--sur2);border-bottom:1.5px solid var(--bdr);white-space:nowrap}
+.tbl td{padding:11px 13px;border-top:1px solid var(--bdr)}
+.tbl tr:hover td{background:#F0F4FF;cursor:pointer}
+
+/* ── USA MAP ── */
+.map-wrap{position:relative;width:100%;height:100%;background:#EEF3F9;border-radius:12px;overflow:hidden}
+.map-grid-bg{position:absolute;inset:0;background-image:radial-gradient(#C8D0E055 1px,transparent 1px);background-size:20px 20px;pointer-events:none}
+.map-tip{position:absolute;background:#fff;border:1.5px solid var(--bdr);border-radius:10px;padding:11px 14px;box-shadow:0 8px 24px rgba(0,0,0,.12);pointer-events:none;z-index:50;min-width:190px;max-width:230px;font-size:12px;animation:popIn .15s ease}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.state-p{transition:fill .2s,filter .2s;cursor:pointer}
+.state-p:hover{filter:brightness(.82)}
+.pin-g{cursor:pointer}
+.pin-g circle,.pin-g text{transition:transform .15s}
+
+/* ── MISC ── */
+.donut{flex-shrink:0}
+.conf-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.conf-cell{background:#fff;border-radius:8px;padding:12px;border:1.5px solid var(--bdr)}
+.step-pill{width:24px;height:24px;border-radius:50%;background:var(--pri-lt);border:1.5px solid var(--pri-md);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--pri);flex-shrink:0}
+.ds-grid{display:grid;grid-template-columns:150px 1fr 200px;border:1.5px solid var(--bdr);border-radius:10px;overflow:hidden}
+.ds-col-hdr{padding:8px 12px;background:var(--sur2);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink4)}
+.ds-src{padding:10px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--bdr);transition:all .12s}
+.ds-src:hover{background:var(--sur2)}
+.ds-src.on{background:var(--ink);color:#fff;font-weight:600}
+.ds-dat{padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px;transition:background .12s}
+.ds-dat:hover{background:rgba(67,97,238,.05)}
+.ds-dat.on{color:var(--pri-dk);font-weight:600;background:rgba(67,97,238,.04)}
+.ds-add{padding:8px 12px;font-size:12.5px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bdr)}
+.lib-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.lib-card{background:#fff;border:1.5px solid var(--bdr);border-radius:13px;border-left:4px solid;padding:18px}
+.journey-wrap{display:flex;align-items:center;overflow-x:auto;padding:10px 0 14px}
+.j-node{display:flex;flex-direction:column;align-items:center;min-width:88px}
+.j-circle{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;border:2.5px solid;cursor:pointer;transition:transform .18s;position:relative}
+.j-circle:hover{transform:scale(1.08)}
+.j-badge{position:absolute;top:-3px;right:-3px;width:17px;height:17px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;font-weight:700}
+.j-conn{width:32px;height:2px;margin:0 0 28px;flex-shrink:0}
+.rev-bars{display:flex;align-items:flex-end;gap:5px;height:88px}
+.rev-bar-col{flex:1;display:flex;flex-direction:column;align-items:center}
+.rev-bar{width:100%;border-radius:4px 4px 0 0;border:1px solid var(--bdr);border-bottom:none}
+.rev-bar-lbl{font-size:9px;color:var(--ink4);margin-top:3px}
+.dot-row{display:flex;align-items:center;gap:3px}
+.dot-count{font-size:10px;font-weight:700;background:var(--sur2);padding:1px 5px;border-radius:4px;color:var(--ink);margin-right:3px;border:1px solid var(--bdr)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.tactic-panel{width:178px;flex-shrink:0}
+.tactic-chip{border:1.5px solid var(--bdr);border-radius:8px;padding:8px 12px;font-size:13px;display:flex;align-items:center;gap:8px;cursor:pointer;transition:all .15s;background:#fff;color:var(--ink2)}
+.tactic-chip:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(67,97,238,.18)}
+.tactic-chip.on{background:var(--pri-lt);border-color:var(--pri);color:var(--pri);font-weight:600}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.fu{animation:fadeUp .32s cubic-bezier(.16,1,.3,1) both}
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- NAV (hidden until module entered) -->
+<nav id="nav" style="display:none">
+  <div class="nav-logo">P</div>
+  <div style="display:flex;flex-direction:column;line-height:1">
+    <span class="nav-brand">PharmaAction</span>
+    <span class="nav-sub">NBA · AutoML</span>
+  </div>
+  <div class="nav-search">
+    <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="#9CA3AF" stroke-width="2"/><path d="M15 15l3 3" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/></svg>
+    <input placeholder="Search HCPs, models, tactics…"/>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="mod-toggle">
+    <button class="mod-btn" id="btnHEC" onclick="switchMod('HEC')">HCP Engagement Console</button>
+    <button class="mod-btn" id="btnAWB" onclick="switchMod('AWB')">Analytics Workbench</button>
+  </div>
+  <div class="nav-bell">🔔<div class="nav-bell-dot"></div></div>
+  <div class="nav-user">
+    <div class="nav-avatar">OR</div>
+    <span style="font-size:12.5px;font-weight:500">Olivia Rhye</span>
+    <span style="font-size:10px;color:var(--ink4)">▾</span>
+  </div>
+</nav>
+
+<!-- PORTAL -->
+<div id="portal" class="screen on">
+  <div class="p-grid"></div><div class="p-blob1"></div><div class="p-blob2"></div>
+  <div class="p-content fu">
+    <div class="p-logo">P</div>
+    <h1 class="p-h1">Welcome to<br><span>Model Portal</span></h1>
+    <p class="p-sub">Select your role to access the platform. Personalised HCP engagement powered by AutoML.</p>
+    <div class="p-cards">
+      <div class="p-card" style="background:rgba(67,97,238,.07);border:1.5px solid rgba(67,97,238,.28)"
+        onmouseenter="this.style.background='rgba(67,97,238,.13)';this.style.transform='translateY(-3px)'"
+        onmouseleave="this.style.background='rgba(67,97,238,.07)';this.style.transform=''"
+        onclick="enterMod('HEC')">
+        <div class="p-card-icon">🧭</div>
+        <div class="p-card-title">HCP Engagement Console</div>
+        <div class="p-card-sub" style="color:var(--ink3)">NBA Dashboard · HCP Journey Orchestration · Territory Analytics</div>
+        <div class="p-card-chips">
+          <span class="p-chip" style="background:rgba(67,97,238,.12);color:var(--pri);border-color:rgba(67,97,238,.3)">Upcoming Tactics</span>
+          <span class="p-chip" style="background:rgba(67,97,238,.12);color:var(--pri);border-color:rgba(67,97,238,.3)">HCP Statics</span>
+          <span class="p-chip" style="background:rgba(67,97,238,.12);color:var(--pri);border-color:rgba(67,97,238,.3)">Heat Map</span>
+        </div>
+        <div class="p-card-arrow" style="background:rgba(67,97,238,.12);color:var(--pri)">→</div>
+      </div>
+      <div class="p-card" style="background:rgba(124,58,237,.07);border:1.5px solid rgba(124,58,237,.28)"
+        onmouseenter="this.style.background='rgba(124,58,237,.13)';this.style.transform='translateY(-3px)'"
+        onmouseleave="this.style.background='rgba(124,58,237,.07)';this.style.transform=''"
+        onclick="enterMod('AWB')">
+        <div class="p-card-icon">🔬</div>
+        <div class="p-card-title">Analytics Workbench</div>
+        <div class="p-card-sub" style="color:var(--ink3)">AutoML · Model Governance · One-click Deployment</div>
+        <div class="p-card-chips">
+          <span class="p-chip" style="background:rgba(124,58,237,.12);color:var(--vio);border-color:rgba(124,58,237,.3)">Create Model</span>
+          <span class="p-chip" style="background:rgba(124,58,237,.12);color:var(--vio);border-color:rgba(124,58,237,.3)">Monitoring</span>
+          <span class="p-chip" style="background:rgba(124,58,237,.12);color:var(--vio);border-color:rgba(124,58,237,.3)">Model Library</span>
+        </div>
+        <div class="p-card-arrow" style="background:rgba(124,58,237,.12);color:var(--vio)">→</div>
+      </div>
+    </div>
+    <div class="p-footer">PharmaAction Builder · v9.0 · Commercial in Confidence</div>
+  </div>
+</div>
+
+<!-- HEC MODULE -->
+<div id="hec" class="screen">
+  <div class="mod-layout">
+    <!-- HEC Sidebar -->
+    <div class="sidebar" id="hecSidebar">
+      <div class="sb-label">HCP Engagement Console</div>
+      <div class="sb-item on" id="sHEC_overview" onclick="hecGo('overview')"><span class="sb-icon">⊞</span>Overview</div>
+      <div class="sb-item" id="sHEC_status" onclick="hecGo('status')"><span class="sb-icon">👥</span>HCP Status</div>
+      <div class="sb-item" id="sHEC_perf" onclick="hecGo('perf')"><span class="sb-icon">📈</span>Performance &amp; Target</div>
+      <div class="sb-item" id="sHEC_heatmap" onclick="hecGo('heatmap')"><span class="sb-icon">🗺</span>Heat Map &amp; Metrics</div>
+      <hr class="sb-divider"/>
+      <div class="sb-label">Product Filter</div>
+      <div class="sb-drug"><span class="sb-dot" style="background:var(--ink4)"></span>All Products</div>
+      <div class="sb-drug"><span class="sb-dot" style="background:var(--pri)"></span>Drug X · Oncology</div>
+      <div class="sb-drug"><span class="sb-dot" style="background:var(--vio)"></span>Drug Y · Cardiology</div>
+      <div class="sb-drug"><span class="sb-dot" style="background:var(--amb)"></span>Drug Z · Neurology</div>
+      <hr class="sb-divider"/>
+      <div class="sb-label">Week Summary</div>
+      <div class="sb-stat" id="hecWeekStat"></div>
+    </div>
+    <!-- HEC Main -->
+    <div class="main-area" id="hecMain"></div>
+  </div>
+</div>
+
+<!-- AWB MODULE -->
+<div id="awb" class="screen">
+  <div class="mod-layout">
+    <!-- AWB Sidebar -->
+    <div class="sidebar">
+      <div class="sb-label">Analytics Workbench</div>
+      <div class="sb-item on" id="sAWB_create" onclick="awbGo('create')"><span class="sb-icon">⊕</span>Create Model</div>
+      <div class="sb-item" id="sAWB_monitor" onclick="awbGo('monitor')"><span class="sb-icon">📡</span>Monitoring</div>
+      <div class="sb-item" id="sAWB_library" onclick="awbGo('library')"><span class="sb-icon">📚</span>Model Library</div>
+      <hr class="sb-divider"/>
+      <div class="sb-label">Active Models</div>
+      <div id="awbModelList"></div>
+    </div>
+    <!-- AWB Main — single render target -->
+    <div class="main-area" id="awbMain"></div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ════════════════════════════════════════════════
+//  DATA
+// ════════════════════════════════════════════════
+const HCPS = [
+  {id:1,name:'Dr. Sarah Chen',spec:'Oncology',city:'Boston',state:'MA',zip:'02115',prod:'Drug X',pri:'High',seg:'Champion',da:88,rel:'3 yrs',exp:18,aff:9,rev:{t:'$28.4M',ly:'$24.1M',lq:'$7.2M',g:'+17.8%'},tac:{e:[4,5],c:[2,3],cl:[2,2],oo:[1,1]},st:'green',nba:'Initiate clinical detail call — high engagement predicted from CLM score.',journey:['Email','CLM','1-1','Call','1-1']},
+  {id:2,name:'Dr. Michael Torres',spec:'Cardiology',city:'Chicago',state:'IL',zip:'60601',prod:'Drug Y',pri:'Medium',seg:'Loyalist',da:62,rel:'1 yr',exp:12,aff:4,rev:{t:'$14.2M',ly:'$13.1M',lq:'$3.4M',g:'+8.4%'},tac:{e:[2,5],c:[1,3],cl:[0,2],oo:[0,1]},st:'red',nba:'Re-engage via email — low CLM engagement detected.',journey:['Email','Email','CLM','Call','1-1']},
+  {id:3,name:'Dr. Priya Nair',spec:'Neurology',city:'Houston',state:'TX',zip:'77001',prod:'Drug Z',pri:'High',seg:'Champion',da:91,rel:'5 yrs',exp:22,aff:12,rev:{t:'$42.0M',ly:'$35.8M',lq:'$11.2M',g:'+17.3%'},tac:{e:[5,5],c:[3,3],cl:[2,2],oo:[1,1]},st:'green',nba:'Introduce Phase III data at next 1:1 — KOL score high.',journey:['Call','CLM','1-1','Email','Call']},
+  {id:4,name:'Dr. James Whitfield',spec:'Rheumatology',city:'Phoenix',state:'AZ',zip:'85001',prod:'Drug X',pri:'Low',seg:'At-Risk',da:44,rel:'6 mos',exp:8,aff:2,rev:{t:'$3.8M',ly:'$4.2M',lq:'$0.8M',g:'-9.5%'},tac:{e:[1,5],c:[0,3],cl:[0,2],oo:[0,1]},st:'red',nba:'Urgent: declining trend. Prioritise personal outreach immediately.',journey:['Email','Call','CLM','1-1','Email']},
+  {id:5,name:'Dr. Linda Park',spec:'Endocrinology',city:'Seattle',state:'WA',zip:'98101',prod:'Drug Y',pri:'Medium',seg:'Growth',da:73,rel:'2 yrs',exp:15,aff:6,rev:{t:'$19.6M',ly:'$16.2M',lq:'$5.1M',g:'+21.0%'},tac:{e:[3,5],c:[2,3],cl:[1,2],oo:[1,1]},st:'amber',nba:'Upsell opportunity — prescribing up 21%. Introduce dosing alternatives.',journey:['CLM','Email','Call','1-1','CLM']},
+  {id:6,name:'Dr. Ahmed Khalil',spec:'Pulmonology',city:'Miami',state:'FL',zip:'33101',prod:'Drug X',pri:'High',seg:'Champion',da:85,rel:'4 yrs',exp:20,aff:9,rev:{t:'$33.1M',ly:'$28.4M',lq:'$8.9M',g:'+16.5%'},tac:{e:[4,5],c:[2,3],cl:[2,2],oo:[0,1]},st:'amber',nba:'Schedule congress debrief — KOL meeting creates re-engagement opportunity.',journey:['1-1','Call','Email','CLM','Call']}
+];
+
+const MODELS = [
+  {id:'#AWB-001',name:'HCP NBA — Drug X',uc:'Predict optimal tactic sequence for Drug X HCPs',algo:'XGBoost',st:'Production',created:'Mar 12, 2025',vuln:17,fn:14,fp:19,split:'80:20',acc:76,
+   feats:[{n:'Email Open Rate',co:0.089,p:0.001,hi:true},{n:'Digital Affinity Index',co:0.078,p:0.002,hi:true},{n:'CLM Engagement Score',co:0.056,p:0.007,hi:true},{n:'Sales Call Frequency',co:-0.071,p:0.003,hi:false},{n:'Cycle Time (days)',co:-0.034,p:0.018,hi:false}],
+   focus:'Prioritise Email Open Rate and Digital Affinity Index (p<0.01). Reducing cycle time by 2–3 days estimated to improve conversion by 12–18%.'},
+  {id:'#AWB-002',name:'HCP Segmentation — Cardiology',uc:'Classify cardiology HCPs by prescribing propensity',algo:'Random Forest',st:'Staging',created:'Mar 15, 2025',vuln:22,fn:18,fp:21,split:'70:30',acc:71,
+   feats:[{n:'Historical Script Volume',co:0.112,p:0.001,hi:true},{n:'KOL Affiliation Score',co:0.088,p:0.003,hi:true},{n:'Marketing Spend Efficiency',co:0.063,p:0.008,hi:true},{n:'Specialty Alignment',co:0.041,p:0.031,hi:false}],
+   focus:'Script Volume and KOL Affiliation dominate. Prioritise HCPs with KOL connections for peer-based outreach.'}
+];
+
+const STATE_HCP = {MA:1,IL:2,TX:3,AZ:4,WA:5,FL:6};
+const SC = {green:'#10B981',amber:'#F59E0B',red:'#EF4444'};
+
+const STATES = {
+  AL:{d:'M 556 353 L 560 353 L 574 452 L 560 455 L 545 456 L 543 403 L 543 370 Z',cx:555,cy:408},
+  AK:{d:'M 100 480 L 140 480 L 155 510 L 140 530 L 110 530 L 95 510 Z',cx:125,cy:505},
+  AZ:{d:'M 175 310 L 230 318 L 235 400 L 200 430 L 170 430 L 155 390 L 155 330 Z',cx:195,cy:375},
+  AR:{d:'M 530 333 L 556 333 L 556 353 L 543 370 L 530 370 L 518 360 L 520 333 Z',cx:538,cy:350},
+  CA:{d:'M 100 220 L 145 190 L 160 240 L 155 310 L 130 355 L 100 340 L 95 280 Z',cx:125,cy:275},
+  CO:{d:'M 255 260 L 355 263 L 355 315 L 255 312 Z',cx:305,cy:287},
+  CT:{d:'M 780 195 L 796 193 L 799 207 L 783 210 Z',cx:789,cy:200},
+  DE:{d:'M 750 225 L 758 222 L 762 235 L 754 238 Z',cx:756,cy:229},
+  FL:{d:'M 600 428 L 640 430 L 665 465 L 655 500 L 625 515 L 595 480 L 588 455 Z',cx:628,cy:470},
+  GA:{d:'M 606 365 L 645 362 L 650 405 L 635 430 L 600 428 L 588 400 L 590 365 Z',cx:620,cy:397},
+  ID:{d:'M 185 140 L 230 130 L 240 185 L 235 220 L 215 230 L 190 220 L 182 180 Z',cx:212,cy:183},
+  IL:{d:'M 560 253 L 575 250 L 585 290 L 583 333 L 556 333 L 545 315 L 548 270 Z',cx:565,cy:292},
+  IN:{d:'M 600 255 L 618 252 L 622 303 L 600 308 L 583 295 L 585 260 Z',cx:603,cy:279},
+  IA:{d:'M 490 230 L 545 228 L 548 270 L 490 273 Z',cx:517,cy:250},
+  KS:{d:'M 375 295 L 490 297 L 490 340 L 375 338 Z',cx:432,cy:317},
+  KY:{d:'M 600 308 L 645 303 L 655 325 L 630 335 L 583 333 L 583 318 Z',cx:620,cy:320},
+  LA:{d:'M 510 390 L 545 388 L 548 420 L 535 440 L 510 435 L 505 415 Z',cx:527,cy:415},
+  ME:{d:'M 820 130 L 840 125 L 848 155 L 832 162 L 818 150 Z',cx:833,cy:143},
+  MD:{d:'M 718 238 L 750 225 L 754 248 L 730 255 L 715 252 Z',cx:735,cy:243},
+  MA:{d:'M 800 185 L 830 180 L 836 196 L 808 200 Z',cx:817,cy:190},
+  MI:{d:'M 600 195 L 645 185 L 658 220 L 640 238 L 607 235 L 598 215 Z',cx:626,cy:211},
+  MN:{d:'M 465 150 L 530 148 L 538 205 L 490 210 L 465 205 Z',cx:498,cy:180},
+  MS:{d:'M 556 353 L 570 350 L 572 430 L 560 450 L 548 440 L 543 403 Z',cx:558,cy:400},
+  MO:{d:'M 490 297 L 556 295 L 556 333 L 530 370 L 503 368 L 490 340 Z',cx:523,cy:333},
+  MT:{d:'M 205 130 L 330 122 L 335 185 L 295 193 L 240 185 L 210 165 Z',cx:268,cy:157},
+  NE:{d:'M 375 255 L 490 255 L 490 297 L 375 295 Z',cx:432,cy:276},
+  NV:{d:'M 145 195 L 195 190 L 205 260 L 175 310 L 145 285 L 138 240 Z',cx:172,cy:250},
+  NH:{d:'M 810 163 L 820 160 L 826 183 L 815 188 Z',cx:818,cy:175},
+  NJ:{d:'M 755 218 L 766 215 L 769 240 L 758 243 Z',cx:762,cy:228},
+  NM:{d:'M 230 318 L 320 323 L 322 408 L 235 400 Z',cx:277,cy:362},
+  NY:{d:'M 730 178 L 790 170 L 795 205 L 760 213 L 720 210 L 718 190 Z',cx:758,cy:192},
+  NC:{d:'M 650 310 L 720 302 L 730 325 L 695 335 L 655 335 L 645 320 Z',cx:688,cy:319},
+  ND:{d:'M 360 148 L 465 148 L 465 192 L 360 195 Z',cx:412,cy:170},
+  OH:{d:'M 635 245 L 665 242 L 668 295 L 645 303 L 622 295 L 618 260 Z',cx:645,cy:270},
+  OK:{d:'M 375 338 L 490 340 L 503 368 L 490 378 L 373 373 Z',cx:432,cy:356},
+  OR:{d:'M 130 170 L 200 162 L 212 220 L 195 228 L 145 228 L 130 205 Z',cx:170,cy:197},
+  PA:{d:'M 695 215 L 748 210 L 750 240 L 695 245 Z',cx:723,cy:228},
+  RI:{d:'M 800 200 L 808 198 L 810 210 L 802 212 Z',cx:805,cy:205},
+  SC:{d:'M 660 335 L 695 325 L 710 355 L 690 375 L 660 368 L 650 348 Z',cx:680,cy:352},
+  SD:{d:'M 360 195 L 465 192 L 465 235 L 360 238 Z',cx:412,cy:216},
+  TN:{d:'M 583 333 L 655 325 L 660 347 L 630 355 L 580 358 L 576 342 Z',cx:618,cy:342},
+  TX:{d:'M 320 323 L 490 315 L 490 378 L 450 430 L 390 455 L 330 430 L 300 390 L 295 350 Z',cx:400,cy:385},
+  UT:{d:'M 205 260 L 265 263 L 265 330 L 230 330 L 235 318 L 205 310 Z',cx:238,cy:295},
+  VT:{d:'M 790 162 L 800 160 L 808 183 L 795 185 Z',cx:798,cy:172},
+  VA:{d:'M 668 290 L 730 282 L 740 308 L 720 318 L 668 315 Z',cx:705,cy:300},
+  WA:{d:'M 130 120 L 200 115 L 205 163 L 132 170 Z',cx:165,cy:142},
+  WV:{d:'M 665 270 L 700 262 L 712 285 L 695 308 L 668 305 L 660 285 Z',cx:687,cy:286},
+  WI:{d:'M 540 185 L 580 180 L 590 235 L 560 248 L 538 238 L 535 205 Z',cx:562,cy:213},
+  WY:{d:'M 255 193 L 355 190 L 355 258 L 255 260 Z',cx:305,cy:226}
+};
+
+const HCP_PINS = {1:{x:812,y:190},2:{x:568,y:268},3:{x:415,y:378},4:{x:193,y:374},5:{x:152,y:138},6:{x:632,y:468}};
+const TACTIC_RESP = {
+  'Emails':{green:[1,3,5],amber:[4,6],red:[2]},
+  'Calls':{green:[2,4],amber:[1,5],red:[3,6]},
+  'CLM Sessions':{green:[3,5],amber:[1,6],red:[2,4]},
+  '1 on 1':{green:[1,2,3],amber:[5,6],red:[4]},
+  'Social Media':{green:[5,6],amber:[2,3],red:[1,4]}
+};
+
+// ════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════
+function el(id){ return document.getElementById(id); }
+function initials(name){ return name.split(' ').map(n=>n[0]).join('').slice(0,2); }
+function avatar(name,i,size=28){
+  const h=i*55+190;
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:hsl(${h},50%,88%);display:inline-flex;align-items:center;justify-content:center;font-size:${size*.38}px;font-weight:700;flex-shrink:0">${initials(name)}</div>`;
+}
+function tag(text,cls){ return `<span class="tag ${cls}">${text}</span>`; }
+function tagDot(text,cls,color){ return `<span class="tag ${cls}"><span class="tag-dot" style="background:${color}"></span>${text}</span>`; }
+function bar(val,max,color,h=5){
+  const pct=Math.min((val/max)*100,100);
+  return `<div class="prog-track" style="height:${h}px"><div class="prog-fill" style="width:${pct}%;background:${color}"></div></div>`;
+}
+function donut(pct,size,stroke,color){
+  const r=(size-stroke)/2,c=2*Math.PI*r,off=c-(pct/100)*c;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="donut"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#F3F4F6" stroke-width="${stroke}"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="${size*.19}" font-weight="700" fill="#1A1A2E" font-family="Inter,sans-serif">${pct}%</text></svg>`;
+}
+function stTag(st){ return st==='green'?tag('On Track','tag-grn'):st==='red'?tag('At Risk','tag-red'):tag('Monitor','tag-amb'); }
+function priTag(p){ return p==='High'?tag(p,'tag-red'):p==='Medium'?tag(p,'tag-amb'):tag(p,'tag-nav'); }
+function segTag(s){ return s==='Champion'?tag(s,'tag-grn'):s==='Growth'?tag(s,'tag-pri'):s==='At-Risk'?tag(s,'tag-red'):tag(s,'tag-blu'); }
+
+// ════════════════════════════════════════════════
+//  USA SVG MAP
+// ════════════════════════════════════════════════
+function buildMap(containerId, hcps, selectedId, stateColors, onClickHCP){
+  const wrap = el(containerId);
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  const div = document.createElement('div');
+  div.className = 'map-wrap';
+
+  const gridBg = document.createElement('div');
+  gridBg.className = 'map-grid-bg';
+  div.appendChild(gridBg);
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','0 0 960 600');
+  svg.style.cssText = 'width:100%;height:100%;display:block';
+
+  // Ocean bg
+  const bg = document.createElementNS(NS,'rect');
+  bg.setAttribute('width','960'); bg.setAttribute('height','600'); bg.setAttribute('fill','#EEF3F9');
+  svg.appendChild(bg);
+
+  // States
+  Object.entries(STATES).forEach(([abbr,{d,cx,cy}])=>{
+    const hcpId = STATE_HCP[abbr];
+    const hcp = hcpId ? hcps.find(h=>h.id===hcpId) : null;
+    let fill = '#E2E6F0';
+    if(stateColors && stateColors[abbr]) fill = stateColors[abbr];
+    else if(hcp) fill = SC[hcp.st]+'55';
+    const isSel = hcp && hcp.id === selectedId;
+    const stroke = isSel ? '#4361EE' : '#C8D0E0';
+    const sw = isSel ? 2.5 : 0.8;
+
+    const path = document.createElementNS(NS,'path');
+    path.setAttribute('d',d);
+    path.setAttribute('fill',fill);
+    path.setAttribute('stroke',stroke);
+    path.setAttribute('stroke-width',sw);
+    path.classList.add('state-p');
+    if(hcp){
+      path.addEventListener('click',()=>{ if(onClickHCP) onClickHCP(hcp); });
+      path.addEventListener('mouseenter',()=>{ showTip(div,hcp,cx,cy,svg); });
+      path.addEventListener('mouseleave',()=>{ hideTip(div); });
+    }
+    svg.appendChild(path);
+
+    // Label
+    const txt = document.createElementNS(NS,'text');
+    txt.setAttribute('x',cx); txt.setAttribute('y',cy+1);
+    txt.setAttribute('text-anchor','middle'); txt.setAttribute('dominant-baseline','middle');
+    txt.setAttribute('font-size','7.5'); txt.setAttribute('font-weight','500');
+    txt.setAttribute('fill','#8892A4'); txt.setAttribute('font-family','Inter,sans-serif');
+    txt.style.pointerEvents='none'; txt.style.userSelect='none';
+    txt.textContent=abbr;
+    svg.appendChild(txt);
+  });
+
+  // HCP Pins
+  hcps.forEach(hcp=>{
+    const pin = HCP_PINS[hcp.id]; if(!pin) return;
+    const color = SC[hcp.st]||'#9CA3AF';
+    const isSel = hcp.id===selectedId;
+    const r = isSel ? 11 : 8;
+    const g = document.createElementNS(NS,'g');
+    g.classList.add('pin-g');
+    g.setAttribute('transform',`translate(${pin.x},${pin.y})`);
+
+    if(isSel){
+      const pulse = document.createElementNS(NS,'circle');
+      pulse.setAttribute('r',r+6); pulse.setAttribute('fill',color); pulse.setAttribute('opacity','0.2');
+      pulse.innerHTML=`<animate attributeName="r" values="${r+4};${r+10};${r+4}" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.3;0;0.3" dur="2s" repeatCount="indefinite"/>`;
+      g.appendChild(pulse);
+    }
+    const shadow = document.createElementNS(NS,'circle');
+    shadow.setAttribute('r',r+1); shadow.setAttribute('fill','rgba(0,0,0,0.15)'); shadow.setAttribute('cy','2');
+    g.appendChild(shadow);
+    const circle = document.createElementNS(NS,'circle');
+    circle.setAttribute('r',r); circle.setAttribute('fill',color);
+    circle.setAttribute('stroke','white'); circle.setAttribute('stroke-width',isSel?2.5:2);
+    g.appendChild(circle);
+    const txt = document.createElementNS(NS,'text');
+    txt.setAttribute('text-anchor','middle'); txt.setAttribute('dominant-baseline','middle');
+    txt.setAttribute('font-size',isSel?6.5:5.5); txt.setAttribute('font-weight','700');
+    txt.setAttribute('fill','white'); txt.setAttribute('font-family','Inter,sans-serif');
+    txt.style.pointerEvents='none'; txt.style.userSelect='none';
+    txt.textContent=initials(hcp.name);
+    g.appendChild(txt);
+
+    g.addEventListener('click',()=>{ if(onClickHCP) onClickHCP(hcp); });
+    g.addEventListener('mouseenter',()=>{ showTipPin(div,hcp,pin.x,pin.y,svg); });
+    g.addEventListener('mouseleave',()=>{ hideTip(div); });
+    svg.appendChild(g);
+  });
+
+  div.appendChild(svg);
+  wrap.appendChild(div);
+}
+
+function showTip(container,hcp,cx,cy,svg){
+  hideTip(container);
+  const rect=svg.getBoundingClientRect(), wRect=container.getBoundingClientRect();
+  const sw=rect.width/960, sh=rect.height/600;
+  renderTip(container, hcp, cx*sw+(rect.left-wRect.left), cy*sh+(rect.top-wRect.top)-80);
+}
+function showTipPin(container,hcp,px,py,svg){
+  hideTip(container);
+  const rect=svg.getBoundingClientRect(), wRect=container.getBoundingClientRect();
+  const sw=rect.width/960, sh=rect.height/600;
+  renderTip(container, hcp, px*sw+(rect.left-wRect.left), py*sh+(rect.top-wRect.top)-95);
+}
+function renderTip(container,hcp,x,y){
+  const color=SC[hcp.st]||'#9CA3AF';
+  const stLabel=hcp.st==='green'?'On Track':hcp.st==='red'?'At Risk':'Monitor';
+  const tip = document.createElement('div');
+  tip.className='map-tip';
+  tip.style.left=Math.min(x+8,container.clientWidth-245)+'px';
+  tip.style.top=Math.max(y,8)+'px';
+  tip.innerHTML=`<div style="font-weight:700;font-size:13px;margin-bottom:3px">${hcp.name}</div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:7px">${hcp.spec} &middot; ${hcp.city}, ${hcp.state}</div>
+    <div style="display:flex;gap:5px;margin-bottom:7px">${tagDot(stLabel,'tag-'+(hcp.st==='green'?'grn':hcp.st==='red'?'red':'amb'),color)} ${priTag(hcp.pri)}</div>
+    <div style="font-size:11px;color:var(--ink2);background:var(--sur2);border-radius:7px;padding:6px 8px;margin-bottom:4px;line-height:1.5">${hcp.nba}</div>
+    <div style="font-size:10px;color:var(--ink4)">Digital Affinity: <strong>${hcp.da}%</strong> &middot; ${hcp.rel}</div>`;
+  container.appendChild(tip);
+}
+function hideTip(container){ container.querySelectorAll('.map-tip').forEach(t=>t.remove()); }
+
+// ════════════════════════════════════════════════
+//  ROUTING
+// ════════════════════════════════════════════════
+let curMod='', hecView='', prevHecView='overview', curHCP=null;
+let awbSrc='CRM', awbAdded=['Sales_Drug X','HCP_Drug X','Salesrep_Drug X'], awbSelTactic=null;
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  const s = el(id); if(s) s.classList.add('on');
+}
+
+function enterMod(mod){
+  curMod = mod;
+  el('nav').style.display = 'flex';
+  el('btnHEC').classList.toggle('on', mod==='HEC');
+  el('btnAWB').classList.toggle('on', mod==='AWB');
+  showScreen(mod==='HEC'?'hec':'awb');
+  if(mod==='HEC'){
+    renderHECWeekStat();
+    hecGo('overview');
+  } else {
+    renderAWBModelList();
+    awbGo('create');
+  }
+}
+
+function switchMod(mod){ enterMod(mod); }
+
+// ════════════════════════════════════════════════
+//  HEC NAV
+// ════════════════════════════════════════════════
+function hecGo(view){
+  hecView = view;
+  ['overview','status','perf','heatmap'].forEach(v=>{
+    el('sHEC_'+v).classList.toggle('on', v===view);
+  });
+  if(view==='overview') renderHECOverview();
+  else if(view==='status') renderHECStatus();
+  else if(view==='perf') renderHECPerf();
+  else if(view==='heatmap') renderHECHeatmap();
+}
+
+function openStatics(hcpId){
+  curHCP = HCPS.find(h=>h.id===hcpId);
+  prevHecView = hecView;
+  // Hide all sidebar items active
+  ['overview','status','perf','heatmap'].forEach(v=>el('sHEC_'+v).classList.remove('on'));
+  renderHECStatics();
+}
+
+function backFromStatics(){
+  curHCP = null;
+  hecGo(prevHecView);
+}
+
+// ════════════════════════════════════════════════
+//  HEC WEEK STAT SIDEBAR
+// ════════════════════════════════════════════════
+function renderHECWeekStat(){
+  const items=[['Emails',22,30,'var(--pri)'],['Calls',18,30,'var(--vio)'],['CLM',14,20,'var(--amb)'],['1:1',6,10,'var(--grn)']];
+  el('hecWeekStat').innerHTML = items.map(([l,d,t,c])=>`
+    <div class="sb-stat-row">
+      <div class="sb-stat-label"><span style="color:var(--ink3)">${l}</span><span style="font-weight:700;color:var(--ink)">${d}/${t}</span></div>
+      ${bar(d,t,c,4)}
+    </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+//  HEC: OVERVIEW
+// ════════════════════════════════════════════════
+function renderHECOverview(){
+  const kpis=[
+    {l:'Emails',icon:'✉',done:22,tot:30,color:'var(--pri)',delta:'+4 vs last week'},
+    {l:'Sales Calls',icon:'📞',done:18,tot:30,color:'var(--vio)',delta:'+2 vs last week'},
+    {l:'CLM Sessions',icon:'🖥',done:14,tot:20,color:'var(--amb)',delta:'On target'},
+    {l:'1:1 Meetings',icon:'🤝',done:6,tot:10,color:'var(--grn)',delta:'+1 vs last week'}
+  ];
+  const mo=new Date().getMonth();
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const html=`<div style="padding:24px 26px;display:flex;flex-direction:column;gap:18px">
+    <!-- Header -->
+    <div class="fu" style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><div class="sec-title">HCP Engagement Console <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; Overview</span></div>
+      <div class="sec-sub">&#x1F4C5; Week 12 &middot; Mar 17 &ndash; Mar 21, 2025</div></div>
+      <div style="display:flex;gap:6px">
+        ${['This Week','Last 30 Days','Quarter'].map((f,i)=>`<button class="btn btn-ghost btn-sm" style="${i===0?'border-color:var(--pri);background:var(--pri-lt);color:var(--pri)':''}">${f}</button>`).join('')}
+      </div>
+    </div>
+    <!-- KPI Cards -->
+    <div class="fu d1" style="display:grid;grid-template-columns:repeat(4,1fr);gap:13px">
+      ${kpis.map(({l,icon,done,tot,color,delta})=>{
+        const pct=Math.round((done/tot)*100);
+        const tc=pct>=75?'tag-grn':pct>=50?'tag-amb':'tag-red';
+        return `<div class="card" style="padding:17px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+            <div style="width:36px;height:36px;border-radius:9px;background:${color}22;display:flex;align-items:center;justify-content:center;font-size:16px">${icon}</div>
+            ${tag(pct+'%',tc)}
+          </div>
+          <div style="font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.5px">${done}<span style="font-size:13px;font-weight:400;color:var(--ink4)">/${tot}</span></div>
+          <div style="font-size:12.5px;color:var(--ink3);margin:3px 0 9px">${l}</div>
+          ${bar(done,tot,color,4)}
+          <div style="font-size:11px;color:var(--ink4);margin-top:5px">${delta}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <!-- Map + Tactics -->
+    <div class="fu d2" style="display:grid;grid-template-columns:1fr 340px;gap:16px">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--bdr)">
+          <div><div class="card-title">Territory Map</div><div style="font-size:11.5px;color:var(--ink4);margin-top:1px">Click a state with HCP pin to view profile</div></div>
+          <button class="btn btn-ghost btn-sm">Full View &#x2197;</button>
+        </div>
+        <div id="overviewMap" style="height:300px"></div>
+        <div style="display:flex;gap:14px;padding:9px 14px;background:var(--sur2);border-top:1px solid var(--bdr)">
+          ${[['var(--grn)','On Track'],['var(--amb)','Monitor'],['var(--red)','At Risk']].map(([c,l])=>`<div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink3)"><div style="width:8px;height:8px;border-radius:50%;background:${c}"></div>${l}</div>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="card" style="padding:18px">
+          <div class="card-hdr"><div class="card-title">Completed Tactics</div>${tag('Last 7 Days','tag-nav')}</div>
+          ${kpis.map(({l,done,tot,color})=>`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span style="font-weight:500;color:var(--ink2)">${l}</span><span style="font-weight:700">${done}/${tot}</span></div>${bar(done,tot,color)}</div>`).join('')}
+        </div>
+        <div class="card" style="padding:18px">
+          <div class="card-hdr"><div class="card-title">Upcoming Tactics</div></div>
+          <div style="display:flex;align-items:center;gap:16px">
+            ${donut(73,88,9,'var(--pri)')}
+            <div style="flex:1">${[['Emails',8,'var(--pri)'],['Calls',12,'var(--vio)'],['CLM',6,'var(--amb)'],['1:1',4,'var(--grn)']].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--bdr);font-size:12.5px"><div style="display:flex;align-items:center;gap:7px"><div style="width:7px;height:7px;border-radius:50%;background:${c}"></div>${l}</div><span style="font-weight:700">${v}</span></div>`).join('')}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Week tables -->
+    <div class="fu d3" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      ${['Current Week','Last Week'].map(period=>`
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--bdr)">
+          <div class="card-title">${period}</div>
+          <button class="btn btn-ghost btn-xs">Filter</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>Date</th><th>HCP</th><th>Tactic Status</th></tr></thead>
+          <tbody>${HCPS.slice(0,4).map((h,i)=>`
+            <tr onclick="openStatics(${h.id})">
+              <td style="color:var(--ink4);font-size:12px;white-space:nowrap">Mar ${17+i}</td>
+              <td><div style="display:flex;align-items:center;gap:7px">${avatar(h.name,i,24)}<span style="font-weight:500">${h.name.replace('Dr. ','')}</span></div></td>
+              <td><div style="display:flex;gap:4px">${tag('E '+h.tac.e[0],'tag-pri')} ${tag('C '+h.tac.c[0],'tag-nav')} ${tag('CLM '+h.tac.cl[0],'tag-pri')}</div></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`).join('')}
+    </div>
+  </div>`;
+
+  el('hecMain').innerHTML = html;
+  // Build map after DOM is updated
+  setTimeout(()=>buildMap('overviewMap',HCPS,null,{},hcp=>openStatics(hcp.id)),50);
+}
+
+// ════════════════════════════════════════════════
+//  HEC: HCP STATUS
+// ════════════════════════════════════════════════
+function renderHECStatus(){
+  const dotRow=arr=>`<div class="dot-row"><span class="dot-count">${arr[0]}/${arr[1]}</span>${Array.from({length:arr[1]}).map((_,j)=>`<span class="dot" style="background:${j<arr[0]?'var(--pri)':'#E9E8E3'};border:1.5px solid ${j<arr[0]?'var(--pri-dk)':'var(--bdr)'}"></span>`).join('')}</div>`;
+  el('hecMain').innerHTML=`<div style="padding:24px 26px">
+    <div class="fu" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div><div class="sec-title">HCP Status <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; Tactic Tracker</span></div><div class="sec-sub">Real-time completion across all tactics</div></div>
+      <select class="sel" style="width:155px"><option>Current Week</option><option>Last Week</option></select>
+    </div>
+    <div class="card fu" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>Date</th><th>HCP</th><th>City</th><th>Zip</th><th>Specialty</th><th>Product</th><th>Emails</th><th>Calls</th><th>CLM</th><th>1:1</th><th>NBA Status</th></tr></thead>
+        <tbody>${HCPS.map((h,i)=>`<tr onclick="openStatics(${h.id})">
+          <td style="color:var(--ink4);font-size:12px">Mar ${17+i}</td>
+          <td><div style="display:flex;align-items:center;gap:8px">${avatar(h.name,i,30)}<div><div style="font-weight:600;font-size:13px">${h.name}</div><div style="font-size:10.5px;color:var(--ink4)">${h.seg}</div></div></div></td>
+          <td style="color:var(--ink3);font-size:12px">${h.city}</td>
+          <td style="color:var(--ink3);font-size:12px">${h.zip}</td>
+          <td>${tag(h.spec,'tag-pri')}</td>
+          <td style="font-weight:600;font-size:12px">${h.prod}</td>
+          <td>${dotRow(h.tac.e)}</td><td>${dotRow(h.tac.c)}</td><td>${dotRow(h.tac.cl)}</td><td>${dotRow(h.tac.oo)}</td>
+          <td>${stTag(h.st)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+//  HEC: PERFORMANCE & TARGET
+// ════════════════════════════════════════════════
+function renderHECPerf(filter=''){
+  const rows=HCPS.filter(h=>!filter||h.name.toLowerCase().includes(filter.toLowerCase())||h.spec.toLowerCase().includes(filter.toLowerCase()));
+  el('hecMain').innerHTML=`<div style="padding:24px 26px">
+    <div class="fu" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div><div class="sec-title">Performance &amp; Target <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; HCP List</span></div><div class="sec-sub">Full territory HCP directory</div></div>
+      <div style="display:flex;gap:7px">
+        <input class="inp" placeholder="Search HCPs..." style="width:190px" oninput="renderHECPerf(this.value)"/>
+        ${['Filter','Sort','&#8595; Download','&#x2197; Share'].map(l=>`<button class="btn btn-ghost btn-sm">${l}</button>`).join('')}
+      </div>
+    </div>
+    <div class="card fu" style="padding:0;overflow:hidden">
+      <table class="tbl">
+        <thead><tr><th>HCP</th><th>City</th><th>State</th><th>Zip</th><th>Specialty</th><th>Product</th><th>Priority</th><th>Segment</th><th>Next Best Action</th><th></th></tr></thead>
+        <tbody>${rows.map((h,i)=>`<tr>
+          <td><div style="display:flex;align-items:center;gap:8px">${avatar(h.name,i,29)}<span style="font-weight:600">${h.name}</span></div></td>
+          <td style="color:var(--ink3);font-size:12px">${h.city}</td>
+          <td style="color:var(--ink3);font-size:12px">${h.state}</td>
+          <td style="color:var(--ink3);font-size:12px">${h.zip}</td>
+          <td>${tag(h.spec,'tag-pri')}</td>
+          <td style="font-weight:600;font-size:12px">${h.prod}</td>
+          <td>${priTag(h.pri)}</td>
+          <td>${segTag(h.seg)}</td>
+          <td><div style="font-size:11.5px;color:var(--ink3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${h.nba}">${h.nba.slice(0,35)}...</div></td>
+          <td><button class="btn btn-soft btn-sm" onclick="openStatics(${h.id})">View &rarr;</button></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+//  HEC: HEAT MAP
+// ════════════════════════════════════════════════
+function renderHECHeatmap(){
+  el('hecMain').innerHTML=`<div style="padding:24px 26px">
+    <div class="fu" style="margin-bottom:18px">
+      <div class="sec-title">Heat Map &amp; Metrics <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; Territory Intelligence</span></div>
+      <div class="sec-sub">Select a tactic to see HCP responsiveness on the territory map</div>
+    </div>
+    <div class="fu d1" style="display:flex;gap:16px;align-items:flex-start">
+      <div class="tactic-panel">
+        <div class="card-title" style="margin-bottom:10px">Tactics</div>
+        <div style="border:1.5px dashed var(--bdr);border-radius:11px;padding:9px;display:flex;flex-direction:column;gap:7px;background:var(--sur2)">
+          ${[['Emails','✉'],['Calls','📞'],['CLM Sessions','🖥'],['1 on 1','🤝'],['Social Media','📱']].map(([k,i])=>`<div class="tactic-chip" id="tc_${k.replace(/ /g,'_')}" onclick="selectTactic('${k}')">${i} ${k}</div>`).join('')}
+        </div>
+        <div id="tacticInfo" style="display:none;margin-top:10px;padding:10px 12px;background:var(--pri-lt);border-radius:8px;border:1.5px solid var(--pri-md);font-size:11.5px;color:var(--pri-dk)"></div>
+      </div>
+      <div style="flex:1">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 15px;border-bottom:1px solid var(--bdr)">
+            <div style="font-size:12.5px;color:var(--ink2);font-weight:500" id="hmStatus">Showing all HCPs &mdash; select a tactic to filter</div>
+            <div style="display:flex;gap:7px">
+              <button class="btn btn-ghost btn-xs">Filter</button>
+              <button class="btn btn-ghost btn-xs">&#8595; Download</button>
+              <button class="btn btn-ghost btn-xs">&#x2197; Share</button>
+            </div>
+          </div>
+          <div id="heatmapMap" style="height:380px"></div>
+          <div style="display:flex;gap:14px;padding:9px 14px;background:var(--sur2);border-top:1px solid var(--bdr)">
+            <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink3)"><div style="width:8px;height:8px;border-radius:50%;background:var(--grn)"></div>High Responsiveness</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink3)"><div style="width:8px;height:8px;border-radius:50%;background:var(--amb)"></div>Moderate</div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink3)"><div style="width:8px;height:8px;border-radius:50%;background:var(--red)"></div>Low Responsiveness</div>
+          </div>
+        </div>
+      </div>
+      <div style="width:188px;flex-shrink:0">
+        <div class="card-title" style="margin-bottom:10px">Report</div>
+        <div class="card" id="hmReport" style="padding:18px"><div style="text-align:center;padding:18px 0;color:var(--ink4);font-size:12.5px;line-height:1.5">Select a tactic to generate report</div></div>
+      </div>
+    </div>
+  </div>`;
+  setTimeout(()=>buildHeatmapMap(),50);
+}
+
+function selectTactic(k){
+  awbSelTactic = awbSelTactic===k ? null : k;
+  document.querySelectorAll('.tactic-chip').forEach(c=>c.classList.remove('on'));
+  const ti=el('tacticInfo'), hs=el('hmStatus');
+  if(awbSelTactic){
+    const chip=el('tc_'+awbSelTactic.replace(/ /g,'_'));
+    if(chip) chip.classList.add('on');
+    ti.style.display='block'; ti.innerHTML=`<strong>Analysing:</strong> ${awbSelTactic}`;
+    if(hs) hs.innerHTML=`HCP responsiveness to: <strong>${awbSelTactic}</strong>`;
+  } else {
+    ti.style.display='none';
+    if(hs) hs.innerHTML='Showing all HCPs &mdash; select a tactic to filter';
+  }
+  buildHeatmapMap();
+  renderHMReport();
+}
+
+function getHeatHCPs(){
+  return HCPS.map(h=>{
+    if(!awbSelTactic) return h;
+    const r=TACTIC_RESP[awbSelTactic];
+    const st=r.green.includes(h.id)?'green':r.amber.includes(h.id)?'amber':'red';
+    return {...h,st};
+  });
+}
+
+function buildHeatmapMap(){
+  const enriched=getHeatHCPs();
+  const sc={};
+  enriched.forEach(h=>{ sc[h.state]=SC[h.st]+'44'; });
+  buildMap('heatmapMap',enriched,null,sc,()=>{});
+}
+
+function renderHMReport(){
+  const rc=el('hmReport'); if(!rc) return;
+  if(!awbSelTactic){ rc.innerHTML='<div style="text-align:center;padding:18px 0;color:var(--ink4);font-size:12.5px;line-height:1.5">Select a tactic to generate report</div>'; return; }
+  const enriched=getHeatHCPs();
+  const g=enriched.filter(h=>h.st==='green').length;
+  const a=enriched.filter(h=>h.st==='amber').length;
+  const r=enriched.filter(h=>h.st==='red').length;
+  rc.innerHTML=`<div style="font-weight:700;font-size:13px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--bdr)">Total HCPs &mdash; ${enriched.length}</div>
+    ${[['&#x1F7E2; High',g,'tag-grn'],['&#x1F534; Low',r,'tag-red'],['&#x1F7E1; Moderate',a,'tag-amb']].map(([l,cnt,cls])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr)"><span style="font-size:12.5px">${l}</span>${tag(cnt,cls)}</div>`).join('')}
+    <div style="margin-top:12px"><div style="font-size:11px;color:var(--ink4);margin-bottom:5px;font-weight:600">Effectiveness</div>${bar(g,enriched.length,'var(--grn)',5)}<div style="font-size:10.5px;color:var(--ink4);margin-top:4px">${Math.round(g/enriched.length*100)}% responsive</div></div>`;
+}
+
+// ════════════════════════════════════════════════
+//  HEC: HCP STATICS
+// ════════════════════════════════════════════════
+function renderHECStatics(){
+  const h=curHCP; if(!h) return;
+  const jIcons={Email:'✉',Call:'📞',CLM:'🖥','1-1':'🤝'};
+  const jCol={Email:'var(--pri)',Call:'var(--vio)',CLM:'var(--amb)','1-1':'var(--grn)'};
+  const states=['Done','Done','Pending','Upcoming','Upcoming'];
+  const stTagS={Done:'tag-grn',Pending:'tag-amb',Upcoming:'tag-nav'};
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const revs=[12.1,15.4,18.2,14.8,21.3,23.5,26.0,28.4,22.1,24.7,19.8,21.5];
+  const maxR=Math.max(...revs);
+  const mo=new Date().getMonth();
+
+  el('hecMain').innerHTML=`<div style="padding:24px 26px;display:flex;flex-direction:column;gap:18px">
+    <!-- Breadcrumb -->
+    <div class="fu" style="display:flex;align-items:center;gap:9px">
+      <button class="btn btn-ghost btn-sm" onclick="backFromStatics()">&#8592; Back</button>
+      <span style="color:var(--ink4)">&rsaquo;</span>
+      <span style="font-size:14px;font-weight:700;color:var(--ink)">HCP Statics</span>
+      <span style="color:var(--ink4)">&rsaquo;</span>
+      <span style="font-size:13px;color:var(--ink3)">${h.name}</span>
+    </div>
+    <!-- Profile + Map -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div class="card fu" style="padding:20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:52px;height:52px;border-radius:14px;background:var(--pri-lt);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--pri);border:2px solid var(--pri-md)">${initials(h.name)}</div>
+            <div><div style="font-size:16px;font-weight:700;color:var(--ink)">${h.name}</div>
+              <div style="font-size:12.5px;color:var(--ink3);margin-top:1px">${h.spec}</div>
+              <div style="display:flex;gap:5px;margin-top:5px">${stTag(h.st)} ${priTag(h.pri)}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px"><button class="btn btn-ghost btn-sm">&#x2708; Refer</button><button class="btn btn-soft btn-sm">+ Add</button></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          ${[['Experience',h.exp+' yrs'],['Relationship',h.rel],['Drug Affiliated',h.prod],['Segment',h.seg],['Location',h.city+', '+h.state],['Zip',h.zip]].map(([k,v])=>`<div style="background:var(--sur2);border-radius:8px;padding:9px 12px;border:1.5px solid var(--bdr)"><div style="font-size:10.5px;color:var(--ink4);margin-bottom:2px;font-weight:600">${k}</div><div style="font-weight:700;font-size:13px">${v}</div></div>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:var(--sur2);border-radius:8px;padding:11px 12px;border:1.5px solid var(--bdr);display:flex;align-items:center;gap:10px">
+            ${donut(h.da,52,6,h.da>75?'var(--grn)':h.da>55?'var(--amb)':'var(--red)')}
+            <div><div style="font-size:10.5px;color:var(--ink4);margin-bottom:2px;font-weight:600">Digital Affinity</div><div style="font-weight:700;font-size:13px">${h.da>=80?'High':h.da>=60?'Medium':'Low'}</div></div>
+          </div>
+          <div style="background:var(--sur2);border-radius:8px;padding:11px 12px;border:1.5px solid var(--bdr)">
+            <div style="font-size:10.5px;color:var(--ink4);margin-bottom:6px;font-weight:600">Affiliations (${h.aff})</div>
+            <div style="display:flex">${Array.from({length:Math.min(h.aff,5)}).map((_,i)=>`<div style="width:24px;height:24px;border-radius:50%;background:hsl(${i*55+190},50%,82%);border:2.5px solid #fff;margin-left:${i>0?-9:0}px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">${String.fromCharCode(65+i)}</div>`).join('')}${h.aff>5?`<div style="width:24px;height:24px;border-radius:50%;background:var(--sur2);border:2px solid var(--bdr);margin-left:-9px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--ink3)">+${h.aff-5}</div>`:''}</div>
+          </div>
+        </div>
+        <div style="background:rgba(67,97,238,.08);border:1.5px solid var(--pri-md);border-radius:9px;padding:12px 14px">
+          <div style="font-size:10.5px;font-weight:700;color:var(--pri);margin-bottom:4px;text-transform:uppercase;letter-spacing:.8px">&#x1F916; Next Best Action</div>
+          <div style="font-size:12.5px;color:var(--ink2);line-height:1.6">${h.nba}</div>
+        </div>
+      </div>
+      <div class="card fu d1" style="padding:0;overflow:hidden">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--bdr)">
+          <div><div class="card-title">HCP Territory Map</div><div style="font-size:11.5px;color:var(--ink4);margin-top:1px">${h.city}, ${h.state} &middot; Nearby territory HCPs</div></div>
+          <button class="btn btn-ghost btn-sm">Full View &#x2197;</button>
+        </div>
+        <div id="staticsMap" style="height:248px"></div>
+      </div>
+    </div>
+    <!-- Revenue -->
+    <div class="card fu d2" style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <div><div class="card-title">Revenue Metrics</div><div style="font-size:12px;color:var(--ink4);margin-top:2px">Track revenue for year, week and day</div></div>
+        <div style="display:flex;gap:6px">
+          ${['Yearly','Quarterly','Weekly'].map((f,i)=>`<button class="btn btn-ghost btn-sm" style="${i===0?'border-color:var(--pri);background:var(--pri-lt);color:var(--pri)':''}">${f}</button>`).join('')}
+          <button class="btn btn-ghost btn-sm">Filter</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px">
+        ${[['Total Revenue',h.rev.t,h.rev.g],['Last Year Revenue',h.rev.ly,'+8.2%'],['Last Quarter',h.rev.lq,'+5.9%']].map(([l,v,g])=>`<div style="background:var(--sur2);border-radius:9px;padding:12px 14px;border:1.5px solid var(--bdr)"><div style="font-size:11px;color:var(--ink4);margin-bottom:3px;font-weight:600">${l}</div><div style="font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-.5px">${v}</div><div style="font-size:11.5px;font-weight:700;color:${g.startsWith('+')?'var(--grn)':'var(--red)'};margin-top:2px">${g.startsWith('+')?'&#9650;':'&#9660;'} ${g}</div></div>`).join('')}
+      </div>
+      <div class="rev-bars">
+        ${revs.map((v,i)=>`<div class="rev-bar-col"><div class="rev-bar" style="height:${(v/maxR)*76}px;background:${i===mo?'var(--pri)':i<mo?'#DBEAFE':'#F3F4F6'}"></div><div class="rev-bar-lbl">${months[i]}</div></div>`).join('')}
+      </div>
+    </div>
+    <!-- Journey Map -->
+    <div class="card fu d3" style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div><div class="card-title">Ongoing Journey Map</div><div style="font-size:12px;color:var(--ink4);margin-top:2px">ML-recommended omnichannel tactic sequence &middot; Mar 17 &ndash; Apr 4, 2025</div></div>
+        <div style="display:flex;gap:7px">
+          <button class="btn btn-ghost btn-sm" style="border-color:var(--pri-md);color:var(--pri)">&#x1F517; Integrate &#x25BE;</button>
+          <button class="btn btn-ghost btn-sm">+ Add Tactic</button>
+          <button class="btn btn-ghost btn-sm">&#x270E; Edit</button>
+        </div>
+      </div>
+      <div class="journey-wrap">
+        ${h.journey.map((step,i)=>{
+          const done=i<2; const c=jCol[step]||'var(--pri)';
+          const stLabel=['Done','Done','Pending','Upcoming','Upcoming'][i];
+          const stCls={Done:'tag-grn',Pending:'tag-amb',Upcoming:'tag-nav'}[stLabel];
+          return `<div class="j-node">
+            <div class="j-circle" style="border-color:${done?c:'var(--bdr)'};background:${done?c+'22':'var(--sur2)'}">
+              <span style="font-size:19px">${jIcons[step]||'&#x1F4CB;'}</span>
+              <div class="j-badge" style="background:${done?'var(--grn)':i===2?'var(--amb)':'#E9E8E3'}">${done?'&#x2713;':i+1}</div>
+            </div>
+            <div style="font-size:11.5px;font-weight:700;color:${done?c:'var(--ink3)'};margin:6px 0 3px">${step}</div>
+            <div style="font-size:9.5px;color:var(--ink4);margin-bottom:4px">Mar ${17+i*3}</div>
+            ${tag(stLabel,stCls)}
+          </div>${i<h.journey.length-1?`<div class="j-conn" style="background:${i<2?'var(--pri)':'var(--bdr)'}"></div>`:''}`;
+        }).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px">
+        ${['Current Week Tactics','Last Week Tactics'].map((period,pi)=>`<div>
+          <div style="font-weight:600;font-size:13px;color:var(--ink2);margin-bottom:8px">${period} &rarr;</div>
+          <div style="background:var(--sur2);border-radius:9px;overflow:hidden;border:1.5px solid var(--bdr)">
+            <table class="tbl">
+              <thead><tr><th>Tactic 1</th><th>Tactic 2</th><th>Tactic 3</th><th>Tactic 4</th><th>Sales</th></tr></thead>
+              <tbody><tr style="background:#fff">
+                <td>Emails ${tag('2','tag-pri')}</td><td>Calls ${tag('3','tag-nav')}</td><td>CLM ${tag('1','tag-pri')}</td><td>1-1 ${tag('1','tag-amb')}</td>
+                <td style="font-weight:700;color:${pi===1?'var(--grn)':'var(--ink4)'}">${pi===1?'$1,700':'&mdash;'}</td>
+              </tr></tbody>
+            </table>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  // Build territory map after DOM
+  setTimeout(()=>buildMap('staticsMap',HCPS,h.id,{[h.state]:SC[h.st]+'44'},()=>{}),50);
+}
+
+// ════════════════════════════════════════════════
+//  AWB NAV
+// ════════════════════════════════════════════════
+function awbGo(view){
+  ['create','monitor','library'].forEach(v=>el('sAWB_'+v).classList.toggle('on',v===view));
+  const main=el('awbMain');
+  if(view==='create') main.innerHTML=buildCreateHTML();
+  else if(view==='monitor') main.innerHTML=buildMonitorHTML();
+  else if(view==='library') main.innerHTML=buildLibraryHTML();
+}
+
+function renderAWBModelList(){
+  el('awbModelList').innerHTML=MODELS.map(m=>`<div style="padding:10px 11px;border-radius:9px;margin:3px 8px;cursor:pointer;border:1.5px solid var(--bdr);background:var(--sur2);transition:border-color .14s" onmouseenter="this.style.borderColor='var(--pri)'" onmouseleave="this.style.borderColor='var(--bdr)'" onclick="awbGo('monitor')">
+    <div style="font-size:11.5px;font-weight:700;color:var(--ink);margin-bottom:2px">${m.id}</div>
+    <div style="font-size:10.5px;color:var(--ink4);line-height:1.4;margin-bottom:5px">${m.name.slice(0,26)}...</div>
+    <div style="display:flex;justify-content:space-between;align-items:center">${tagDot(m.st,'tag-'+(m.st==='Production'?'grn':'amb'),m.st==='Production'?'#10B981':'#F59E0B')}<span style="font-size:10px;font-weight:700;color:${m.acc>=75?'var(--grn)':'var(--amb)'}">${m.acc}%</span></div>
+  </div>`).join('');
+}
+
+// ════════════════════════════════════════════════
+//  AWB: CREATE MODEL
+// ════════════════════════════════════════════════
+const AWB_SOURCES={
+  CRM:['Sales_Drug X','Marketing Spend_Drug X','HCP_Drug X','Salesrep_Drug X','Email Engagement_Drug X'],
+  ERP:['Inventory_Drug X','Supply_Chain_Data','Cost_Analytics'],
+  DWH:['Historical_Sales_2y','Market_Share_Data','Trend_Analysis'],
+  BI: ['Dashboard_KPIs','Campaign_Performance','ROI_Reports']
+};
+
+function buildCreateHTML(){
+  const dpRows=[['Dr. Jon Velter','DRUG X','$9,540',1,'$3,200','$1,100'],['Dr. Jon Velter','DRUG Y','$9,540',2,'$4,100','$1,100'],['Dr. Maria Santos','DRUG X','$12,200',3,'$5,600','$2,300'],['Dr. Alan Wei','DRUG X','$7,800',1,'$2,900','$900'],['Dr. Priya Iyer','DRUG Y','$11,400',3,'$4,800','$1,700']];
+  return `<div style="padding:24px 26px;display:flex;flex-direction:column;gap:16px">
+    <div class="fu"><div class="sec-title">Analytics Workbench <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; Create Model</span></div><div class="sec-sub">Configure your AutoML model in five steps</div></div>
+    <!-- Step 1 -->
+    <div class="card fu d1" style="padding:20px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px"><div class="step-pill">1</div><div class="card-title">Define Use Case</div></div>
+      <div class="field" style="margin-bottom:12px"><label class="field-label">Use Case of Model *</label><input class="inp" placeholder="e.g. Predict optimal NBA sequence for Drug X HCPs in Q2 2025"/></div>
+      <div style="display:flex;gap:12px;align-items:flex-end">
+        <div class="field" style="flex:1"><label class="field-label">Stakeholders &amp; Department</label><select class="sel"><option value="">Select department</option><option>Commercial Excellence</option><option>Marketing Operations</option><option>Sales Analytics</option><option>Medical Affairs</option></select></div>
+        <button class="btn btn-dark" style="margin-bottom:1px">&#8595; Get Data</button>
+      </div>
+    </div>
+    <!-- Step 2 -->
+    <div class="card fu d2" style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:9px"><div class="step-pill">2</div><div class="card-title">Select Data Sources</div></div>
+        <div style="display:flex;gap:8px"><select class="sel" style="width:110px"><option>Week</option><option>Day</option><option>Month</option></select><button class="btn btn-dark btn-sm">&#x25BA; Run Data</button></div>
+      </div>
+      <div class="ds-grid" id="dsGrid">${buildDSGrid()}</div>
+    </div>
+    <!-- Step 3+4 -->
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:14px">
+      <div class="card fu d3" style="padding:20px">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px"><div class="step-pill">3</div><div class="card-title">Data Presence List</div></div>
+        <table class="tbl">
+          <thead><tr><th>#</th><th>HCP Name</th><th>Drug</th><th>Sales Value</th><th>Calls</th><th>Mktg Spend</th><th>Sample Cost</th></tr></thead>
+          <tbody>${dpRows.map((row,i)=>`<tr style="background:${i%2===0?'#fff':'var(--sur2)'}"><td style="color:var(--ink4)">${i+1}</td>${row.map((c,j)=>`<td style="font-weight:${j===0?600:400}">${c}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="card fu d4" style="padding:20px">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px"><div class="step-pill">4</div><div class="card-title">Feature Extraction</div></div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div class="field"><label class="field-label">Independent Variables</label><select class="sel"><option value="">Select variables</option><option>Email Open Rate</option><option>Digital Affinity Index</option><option>CLM Engagement Score</option><option>Sales Call Frequency</option><option>KOL Affiliation Score</option></select></div>
+          <div class="field"><label class="field-label">Target Variable *</label><select class="sel"><option value="">Select target</option><option>Sales Value (Scripts)</option><option>HCP Response Rate</option><option>Prescribing Volume</option></select></div>
+          <div class="field"><label class="field-label">Co-variates</label><select class="sel"><option value="">Select</option><option>Territory Region</option><option>Specialty</option><option>Drug Product</option></select></div>
+          <button class="btn btn-dark">Create Model</button>
+        </div>
+      </div>
+    </div>
+    <!-- Step 5 -->
+    <div class="card fu d4" style="padding:20px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:16px">
+        <div class="step-pill">5</div>
+        <div><div class="card-title">Model Configuration</div><div style="font-size:11.5px;color:var(--ink4);margin-top:1px">Model ID &mdash; <strong>#AWB-003</strong></div></div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+        <div style="display:flex;gap:14px;align-items:center">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="mfr" value="sup" checked style="accent-color:var(--pri)"> Supervised</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="mfr" value="unsup" style="accent-color:var(--pri)"> Unsupervised</label>
+        </div>
+        <select class="sel" style="width:220px" id="algoSel"><option value="">Select Algorithm</option><option>XGBoost</option><option>Random Forest</option><option>Deep Neural Network (DNN)</option><option>Gradient Boosted Regression</option></select>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <div class="field" style="width:68px"><label class="field-label">Test %</label><input class="inp" id="testPct" value="20"/></div>
+          <div class="field" style="width:68px"><label class="field-label">Train %</label><input class="inp" id="trainPct" value="80"/></div>
+          <button class="btn btn-ghost btn-sm" onclick="clearModel()">Clear</button>
+          <button class="btn btn-pri btn-sm" id="runBtn" onclick="runModel()">Get Result &#x25BA;</button>
+        </div>
+      </div>
+      <div id="modelResult" style="margin-top:14px">
+        <div style="background:var(--sur2);border-radius:10px;padding:18px;text-align:center;color:var(--ink4);font-size:13px;border:1.5px dashed var(--bdr)">Configure parameters above and click Get Result</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildDSGrid(){
+  return `<div style="border-right:1.5px solid var(--bdr)">
+    <div class="ds-col-hdr">Source</div>
+    ${Object.keys(AWB_SOURCES).map(s=>`<div class="ds-src${s===awbSrc?' on':''}" onclick="setAWBSrc('${s}')">${s}</div>`).join('')}
+  </div>
+  <div style="border-right:1.5px solid var(--bdr)">
+    <div class="ds-col-hdr">Select Data</div>
+    ${(AWB_SOURCES[awbSrc]||[]).map(d=>`<div class="ds-dat${awbAdded.includes(d)?' on':''}" onclick="toggleAWBData('${d}')"><input type="checkbox" ${awbAdded.includes(d)?'checked':''} style="accent-color:var(--pri);width:13px;height:13px"> ${d}</div>`).join('')}
+  </div>
+  <div>
+    <div class="ds-col-hdr" style="color:var(--pri)">Added Data</div>
+    ${awbAdded.map(a=>`<div class="ds-add"><span style="font-weight:500;font-size:12.5px">${a}</span><button style="background:none;border:none;cursor:pointer;color:var(--ink4);font-size:17px" onclick="removeAWBData('${a}')">&#215;</button></div>`).join('')}
+  </div>`;
+}
+
+function setAWBSrc(s){ awbSrc=s; const g=el('dsGrid'); if(g) g.innerHTML=buildDSGrid(); }
+function toggleAWBData(d){ awbAdded=awbAdded.includes(d)?awbAdded.filter(x=>x!==d):[...awbAdded,d]; const g=el('dsGrid'); if(g) g.innerHTML=buildDSGrid(); }
+function removeAWBData(d){ awbAdded=awbAdded.filter(x=>x!==d); const g=el('dsGrid'); if(g) g.innerHTML=buildDSGrid(); }
+function clearModel(){ const a=el('algoSel'); if(a) a.value=''; const t=el('testPct'); if(t) t.value=''; const r=el('trainPct'); if(r) r.value=''; }
+
+function runModel(){
+  const btn=el('runBtn'); if(!btn) return;
+  btn.textContent='Running...'; btn.disabled=true;
+  const res=el('modelResult');
+  if(res) res.innerHTML=`<div style="background:var(--sur2);border-radius:10px;padding:18px;text-align:center;border:1.5px solid var(--bdr)"><div style="font-size:24px;margin-bottom:8px">&#9881;&#65039;</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Training model...</div><div style="font-size:12px;color:var(--ink4);margin-bottom:12px">Applying algorithm &middot; ${awbAdded.length} datasets</div>${bar(65,100,'var(--pri)',5)}</div>`;
+  setTimeout(()=>{
+    if(el('runBtn')){ el('runBtn').textContent='Get Result &#x25BA;'; el('runBtn').disabled=false; }
+    const algo=(el('algoSel')||{}).value||'XGBoost';
+    const res2=el('modelResult');
+    if(res2) res2.innerHTML=`<div style="background:var(--grn-lt);border-radius:10px;padding:14px;border:1.5px solid #A7F3D0"><div style="font-weight:700;color:#047857;margin-bottom:4px">&#x2705; Model #AWB-003 created!</div><div style="font-size:12.5px;margin-bottom:4px">Algorithm: <strong>${algo}</strong> &middot; Accuracy: <strong>74%</strong> &middot; ${tag('Staging','tag-amb')}</div><div style="font-size:12px;color:var(--ink3)">Switch to Monitoring to validate and deploy.</div></div>`;
+  },2200);
+}
+
+// ════════════════════════════════════════════════
+//  AWB: MONITORING
+// ════════════════════════════════════════════════
+function buildMonitorHTML(){
+  return `<div style="padding:24px 26px;display:flex;flex-direction:column;gap:16px">
+    <div class="fu"><div class="sec-title">Monitoring <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; Model Governance</span></div><div class="sec-sub">Track health, manage lifecycle, and fine-tune production models</div></div>
+    ${MODELS.map((m,mi)=>{
+      const vulC=m.vuln>20?'var(--red)':'var(--amb)';
+      const fnC=m.fn>18?'var(--amb)':'var(--grn)';
+      const fpC=m.fp>20?'var(--amb)':'var(--grn)';
+      const accC=m.acc>=75?'var(--grn)':m.acc>=65?'var(--amb)':'var(--red)';
+      const accLabel=m.acc>=75?'Acceptable':m.acc>=65?'Review':'Retrain';
+      const accCls=m.acc>=75?'tag-grn':m.acc>=65?'tag-amb':'tag-red';
+      const stCls=m.st==='Production'?'tag-grn':'tag-amb';
+      const stDot=m.st==='Production'?'#10B981':'#F59E0B';
+      const confCells=[['True Positive (TP)','87','var(--grn)'],['False Positive (FP)',m.fp,'var(--red)'],['False Negative (FN)',m.fn,'var(--amb)'],['True Negative (TN)','79','var(--grn)']];
+      const prec=82,rec=100-m.fn,f1=Math.round(2*prec*rec/(prec+rec));
+      return `<div class="card fu d${mi+1}" style="padding:22px">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:15px;border-bottom:1px solid var(--bdr)">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="font-size:16px;font-weight:700;color:var(--ink)">${m.id}</span>${tagDot(m.st,stCls,stDot)}</div>
+            <div style="font-weight:600;font-size:13.5px;color:var(--ink2);margin-bottom:2px">${m.name}</div>
+            <div style="font-size:12px;color:var(--ink4)">Algorithm: <strong>${m.algo}</strong> &middot; Created ${m.created}</div>
+          </div>
+          <div style="display:flex;gap:7px;flex-shrink:0">
+            <button class="btn btn-grn btn-sm">&#8595; Ingest</button>
+            <button class="btn btn-pri btn-sm">&#x1F680; Deploy</button>
+            <button class="btn btn-red btn-sm">&#x21BA; Replace</button>
+          </div>
+        </div>
+        <!-- Metrics -->
+        <div style="display:grid;grid-template-columns:200px 1fr 162px;gap:18px;margin-bottom:18px">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink4);margin-bottom:11px">Model Health</div>
+            ${[['Vulnerability',m.vuln,vulC],['False Negative',m.fn,fnC],['False Positive',m.fp,fpC]].map(([l,v,c])=>`<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:var(--ink3)">${l}</span><span style="font-weight:700;color:${c}">${v}%</span></div>${bar(v,50,c,5)}</div>`).join('')}
+            <div style="margin-top:9px;display:flex;align-items:center;gap:8px;padding:8px 11px;background:var(--sur2);border-radius:8px;border:1.5px solid var(--bdr)"><span style="font-size:12px;color:var(--ink3)">Data Split</span><span style="font-weight:700;font-size:13px">${m.split}</span></div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink4);margin-bottom:11px">Confusion Matrix</div>
+            <div style="background:var(--sur2);border-radius:10px;padding:13px;border:1.5px solid var(--bdr)">
+              <div class="conf-grid" style="margin-bottom:8px">${confCells.map(([l,v,c])=>`<div class="conf-cell"><div style="font-size:9.5px;color:var(--ink4);margin-bottom:3px;font-weight:600">${l}</div><div style="font-size:24px;font-weight:700;color:${c}">${v}</div></div>`).join('')}</div>
+              <div style="font-size:11px;color:var(--ink4);text-align:center">Precision: ${prec}% &middot; Recall: ${rec}% &middot; F1: ${f1}%</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink4);align-self:flex-start">Accuracy</div>
+            ${donut(m.acc,106,11,accC)}
+            ${tag(accLabel,accCls)}
+          </div>
+        </div>
+        <!-- Significance + Focus -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink4);margin-bottom:10px">Model Significance Output</div>
+            <table class="tbl" style="font-size:12.5px">
+              <thead><tr><th>Feature</th><th>Co-efficient</th><th>p-value</th><th>Follow</th></tr></thead>
+              <tbody>${m.feats.map((f,i)=>`<tr style="background:${i%2===0?'#fff':'var(--sur2)'}"><td style="font-weight:500">${f.n}</td><td style="font-weight:700;color:${f.co<0?'var(--red)':'var(--grn)'}">${f.co>0?'+':''}${f.co}</td><td style="font-weight:600;color:${f.p<0.01?'var(--grn)':f.p<0.05?'var(--amb)':'var(--red)'}">${f.p}</td><td><div style="width:10px;height:10px;border-radius:50%;background:${f.hi?'var(--pri)':f.p<0.05?'var(--amb)':'#D1D5DB'}"></div></td></tr>`).join('')}</tbody>
+            </table>
+          </div>
+          <div style="background:rgba(67,97,238,.07);border-radius:11px;padding:16px;border:1.5px solid var(--pri-md)">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--pri);margin-bottom:9px">&#x1F4A1; Focus On</div>
+            <div style="font-size:13px;color:var(--ink2);line-height:1.65;margin-bottom:16px">${m.focus}</div>
+            <div style="display:flex;gap:7px"><button class="btn btn-grn btn-sm">&#8595; Ingest</button><button class="btn btn-pri btn-sm">&#x1F680; Deploy</button><button class="btn btn-red btn-sm">&#x21BA; Replace</button></div>
+          </div>
+        </div>
+        <!-- Tweak -->
+        <div style="border-top:1.5px solid var(--bdr);padding-top:14px">
+          <button class="btn btn-ghost btn-sm" onclick="toggleTweak(this)">&#9881; Tweak Model</button>
+          <div style="display:none;margin-top:12px;padding:14px;background:var(--sur2);border-radius:10px;border:1.5px solid var(--bdr)">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:11px;align-items:flex-end">
+              <div class="field"><label class="field-label">Independent Variables</label><select class="sel"><option>Select</option><option>Email Open Rate</option><option>CLM Score</option></select></div>
+              <div class="field"><label class="field-label">Target Variable</label><select class="sel"><option>Select</option><option>Sales Value</option><option>HCP Response Rate</option></select></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px"><div class="field"><label class="field-label">Test %</label><input class="inp" placeholder="20"/></div><div class="field"><label class="field-label">Train %</label><input class="inp" placeholder="80"/></div></div>
+              <button class="btn btn-dark">Update &#x25BA;</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function toggleTweak(btn){ const p=btn.nextElementSibling; const open=p.style.display==='block'; p.style.display=open?'none':'block'; btn.textContent=open?'\u2699 Tweak Model':'\u2699 Hide Tweak Panel'; }
+
+// ════════════════════════════════════════════════
+//  AWB: MODEL LIBRARY
+// ════════════════════════════════════════════════
+function buildLibraryHTML(){
+  const lib=[
+    {n:'XGBoost',i:'&#9889;',c:'#F59E0B',tags:['Supervised','Classification','Fast'],desc:'Advanced gradient boosting for structured HCP data. Best for propensity-to-prescribe scoring on CRM datasets.'},
+    {n:'Random Forest',i:'&#127794;',c:'#10B981',tags:['Supervised','Ensemble','Robust'],desc:'Combines decision trees to handle complex HCP datasets with historical interaction patterns and territory data.'},
+    {n:'Deep Neural Networks',i:'&#129504;',c:'#4361EE',tags:['Supervised','Deep Learning','Omnichannel'],desc:'Captures non-linear patterns across multi-channel HCP touchpoints: email, CLM, calls, and 1:1 outcomes.'},
+    {n:'Recurrent Neural Networks',i:'&#128260;',c:'#7C3AED',tags:['Supervised','Time-Series','Sequential'],desc:'Specialised for HCP journey sequences and time-series prescribing trends across rep-HCP interaction histories.'},
+    {n:'Markov Decision Process',i:'&#127922;',c:'#0EA5E9',tags:['Reinforcement Learning','Journey','NBA'],desc:'Optimises the sequence of rep-HCP interactions over time. Mathematical framework for optimal NBA sequences.'},
+    {n:'Factorization Machines',i:'&#9881;&#65039;',c:'#EF4444',tags:['Unsupervised','Sparse Data','Recommendation'],desc:'Handles fragmented HCP interaction history. Captures feature interactions for recommendation with limited data.'}
+  ];
+  return `<div style="padding:24px 26px">
+    <div class="fu" style="margin-bottom:22px"><div class="sec-title">Model Library <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; Recommendation Engine</span></div><div class="sec-sub">Six algorithm families pre-configured for pharma commercial use cases</div></div>
+    <div class="lib-grid fu d1">
+      ${lib.map(({n,i,c,tags,desc})=>`<div class="lib-card" style="border-left-color:${c}">
+        <div style="display:flex;align-items:flex-start;gap:13px;margin-bottom:11px">
+          <div style="width:44px;height:44px;border-radius:11px;background:${c}22;display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0">${i}</div>
+          <div style="flex:1">
+            <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:5px">${n}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">${tags.map(t=>`<span style="background:${c}22;color:${c};border-radius:99px;padding:2px 8px;font-size:9.5px;font-weight:700;border:1px solid ${c}44">${t}</span>`).join('')}</div>
+          </div>
+          <button class="btn btn-ghost btn-xs">Select</button>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink3);line-height:1.65">${desc}</p>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════
+// Nothing to init — portal shows by default, everything renders on demand
+</script>
+</body>
+</html>
