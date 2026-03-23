@@ -4,7 +4,9 @@ A collection of UI-led product concepts and AI solution ideas for Life Sciences 
 
 ## Concepts Included
 - Enterprise AI Platform for Commercial Analytics
-- Competitive Intelligence
+- Next Best Action System for HCP Engagement
+- GVD - Accelerated Dossier Creation
+- Prior Autorisation and Re Autorisation Accelerators
 
 ## Notes
 Most concepts in this repository are UI prototypes and product explorations
