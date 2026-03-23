@@ -1,0 +1,1246 @@
+Build a full-stack web application called ClearAuth — a Prior Authorization (PA) 
+and Re-Authorization (RA) platform for healthcare. Stack: React + TypeScript 
+frontend, Express.js backend, in-memory data store. Use Vite for bundling. 
+Run frontend on port 5173, backend on port 3001. Start command: npm run dev 
+(concurrently runs both).
+
+════════════════════════════════════════════════════════════════
+SECTION 1: DESIGN SYSTEM
+════════════════════════════════════════════════════════════════
+
+Font: Inter from Google Fonts (weights 400, 500, 600, 700)
+Use CSS modules or plain CSS — NO Tailwind.
+
+Color tokens (define as CSS custom properties):
+  --blue:         #2563EB
+  --blue-dk:      #1D4ED8
+  --blue-lt:      #EFF6FF
+  --blue-bd:      #BFDBFE
+  --green:        #16A34A
+  --green-lt:     #F0FDF4
+  --green-bd:     #BBF7D0
+  --amber:        #D97706
+  --amber-lt:     #FFFBEB
+  --amber-bd:     #FDE68A
+  --red:          #DC2626
+  --red-lt:       #FEF2F2
+  --red-bd:       #FECACA
+  --violet:       #7C3AED
+  --violet-lt:    #F5F3FF
+  --ink:          #111827
+  --ink2:         #374151
+  --ink3:         #6B7280
+  --ink4:         #9CA3AF
+  --surface:      #FFFFFF
+  --surface2:     #F9FAFB
+  --surface3:     #F3F4F6
+  --border:       #E5E7EB
+
+Layout:
+  Topnav height: 52px, background white, border-bottom 1px solid --border
+  Sidebar width: 224px, background white, border-right 1px solid --border
+  Main content: flex-1, overflow-y auto, background --surface2
+
+Border radius:
+  Input/button: 8px
+  Card: 12px
+  Badge/chip: 999px
+
+Status badge component (pill, 11.5px, font-weight 600, inline-flex + dot):
+  pending  → bg amber-lt, text #92400E, border amber-bd, dot amber
+  review   → bg blue-lt,  text #1D4ED8, border blue-bd,  dot blue
+  approved → bg green-lt, text #14532D, border green-bd, dot green
+  denied   → bg red-lt,   text #991B1B, border red-bd,   dot red
+
+Table styles:
+  th: 11px, font-weight 700, uppercase, letter-spacing 0.3px, color --ink4, 
+      background --surface2, border-bottom 1px solid --border
+  td: 13px, padding 12px 14px, border-bottom 1px solid --border
+  tr:hover td: background #FAFAFA, cursor pointer
+
+Card styles:
+  background white, border 1px solid --border, border-radius 12px, padding 20px
+  hover: box-shadow 0 2px 12px rgba(0,0,0,0.06)
+
+Button styles:
+  Primary: background --blue, color white, border none, hover --blue-dk
+  Outline: background transparent, color --blue, border 1px solid --blue-bd
+  Ghost:   background transparent, color --ink3, border 1px solid --border
+  Danger ghost: transparent, color --red, border 1px solid --red-bd
+  All buttons: hover translateY(-1px) + brightness(1.06), transition 0.14s
+  border-radius 8px, font-weight 600, font-family Inter
+
+Drug chip: violet-lt bg, violet text, #DDD6FE border, 999px radius, 11px, bold
+Payer chip: blue-lt bg, blue text, blue-bd border, 999px radius, 11px, bold
+Case ID style: font-family monospace (DM Mono or system-mono), 12px, color --ink2
+
+
+════════════════════════════════════════════════════════════════
+SECTION 2: AUTHENTICATION & ROUTING
+════════════════════════════════════════════════════════════════
+
+LOGIN PAGE (/login):
+Split layout — left 45% white, right 55% solid #2563EB.
+
+Left panel:
+  ClearAuth logo (blue, 26px, font-weight 700)
+  "Prior Authorization Platform" (13px, gray)
+  Login / Register tab toggle (segmented control style)
+  Login form:
+    Username input (placeholder "Enter your username")
+    Password input (type=password)
+    Sign In button (full-width, blue)
+  Below form: 3 clickable role demo buttons:
+    "Login as Provider (Dr. Sarah Mitchell)"   → sets role=provider
+    "Login as Patient (Robert Brown)"          → sets role=patient  
+    "Login as Payer (Sam Wilson)"              → sets role=payer
+  These buttons are outlined, small, for demo convenience.
+
+Right panel (white text on blue):
+  "ClearAuth" heading (28px bold)
+  "Streamline Your Prior Authorization Process" (18px, semi-bold)
+  Description paragraph
+  3 feature bullets with check icons:
+    Intelligent Form Generation — Auto-fill PA forms using clinical data
+    Real-time Status Tracking — Monitor approvals across the entire workflow
+    AI-Powered Assistance — Get help with complex prior authorization processes
+
+After login:
+  Store role in React Context + localStorage.
+  Redirect to role-specific dashboard.
+  Show role badge in topnav: Provider=blue pill, Patient=green pill, Payer=amber pill.
+
+Topnav (shown after login):
+  Left: "ClearAuth" blue logo (17px bold)
+  Center: Search bar 260px ("Search patients, cases, medications…")
+  Right: role badge | notification bell (with red dot badge) | user avatar circle
+  Avatar: Provider="SM" blue, Patient="RB" green, Payer="SW" amber
+
+React Router v6 routes:
+  /                    → redirect to /login
+  /login               → LoginPage
+  /provider/*          → ProviderLayout (sidebar + topnav) with nested routes
+  /patient/*           → PatientLayout with nested routes
+  /payer/*             → PayerLayout with nested routes
+
+
+════════════════════════════════════════════════════════════════
+SECTION 3: TYPESCRIPT DATA MODELS
+════════════════════════════════════════════════════════════════
+
+// src/types/index.ts
+
+export type PAStatus = 'pending' | 'review' | 'approved' | 'denied';
+export type Priority = 'normal' | 'high';
+export type SubmissionChannel = 'fhir' | 'portal' | 'fax';
+export type UserRole = 'provider' | 'patient' | 'payer';
+export type UrgencyLevel = 'normal' | 'urgent';
+
+export interface PACase {
+  id: string;                   // "PA-249761"
+  patientId: string;
+  patientName: string;
+  patientDob: string;           // "11/05/1975"
+  drug: string;                 // "Ozempic"
+  ndcCode?: string;
+  condition: string;            // "Rheumatoid arthritis, unspecified"
+  icd10Code: string;            // "M06.9"
+  status: PAStatus;
+  submittedDate: string;        // "Apr 4, 2025"
+  dueDate: string;              // "Apr 19, 2025"
+  payer: string;                // "BlueCross Health"
+  payerContact: string;
+  provider: string;             // "Dr. Sarah Mitchell"
+  npi: string;                  // "1234567890"
+  authNumber?: string;          // "BCH-2025-8841" (only if approved)
+  authValidFrom?: string;
+  authValidUntil?: string;      // "Oct 4, 2025"
+  denialReason?: string;
+  priority: Priority;
+  documents: string[];          // filenames
+  submissionChannel: SubmissionChannel;
+  previousTreatments?: string;
+  clinicalJustification?: string;
+  dosage?: string;
+  timeline: TimelineEvent[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  eventType: 'submitted' | 'received' | 'in_review' | 'info_requested' 
+           | 'approved' | 'denied' | 'appealed' | 'reauth_started' 
+           | 'reauth_approved';
+  actor: string;                // "Dr. Sarah Mitchell" or "BlueCross Health"
+}
+
+export interface Patient {
+  id: string;
+  name: string;
+  mrn: string;
+  dob: string;
+  age: number;
+  gender: string;
+  phone: string;
+  email: string;
+  insurance: string;
+  memberId: string;
+  plan: string;
+  deductible: string;
+  copay: string;
+  payer: string;
+  payerContact: string;
+  conditions: string[];
+  medications: PatientMedication[];
+  allergies: string[];
+  lastVisit: string;
+}
+
+export interface PatientMedication {
+  name: string;
+  dose: string;
+  condition: string;
+  paStatus: PAStatus;
+  authNumber?: string;
+  validUntil?: string;
+}
+
+export interface ReauthCase {
+  id: string;
+  patientName: string;
+  drug: string;                 // "Humira (adalimumab)"
+  drugShort: string;            // "Humira"
+  condition: string;
+  originalApproval: string;     // "03/15/2023"
+  reauthorized: string;         // "06/01/2023"
+  newExpiration: string;        // "12/01/2023"
+  daysUntilExpiry: number;
+  urgency: UrgencyLevel;
+  authNumber: string;
+}
+
+export interface AppealCase {
+  caseId: string;
+  patientName: string;
+  drug: string;
+  denialReason: string;
+  deniedDate: string;
+  payer: string;
+  appealStatus: 'not_filed' | 'filed' | 'upheld' | 'reversed';
+  appealLetter?: string;
+}
+
+export interface NewPAFormData {
+  patientName: string;
+  dateOfBirth: string;
+  diagnosis: string;
+  diagnosisCode: string;
+  medication: string;
+  dosage: string;
+  previousTreatments: string;
+  clinicalJustification: string;
+  documents: File[];
+  prescribingPhysician: string;
+  npi: string;
+  payer: string;
+  memberId: string;
+}
+
+
+════════════════════════════════════════════════════════════════
+SECTION 4: SEED DATA
+════════════════════════════════════════════════════════════════
+
+// server/data/seed.ts — in-memory store initialized with this data
+
+PA CASES (10 cases):
+
+PA-249761:
+  patient: James Wilson, DOB 11/05/1975, drug: Ozempic, 
+  condition: Rheumatoid arthritis unspecified, ICD10: M06.9, 
+  status: approved, submitted: Apr 4 2025, due: Apr 10 2025,
+  payer: BlueCross Health, payerContact: 1-800-275-2583,
+  authNumber: BCH-2025-8841, validFrom: Apr 10 2025, validUntil: Oct 10 2025,
+  priority: normal, docs: ["clinical_notes.pdf","lab_results.pdf"],
+  channel: fhir,
+  timeline: [submitted Apr4, received Apr4, in_review Apr5, approved Apr10]
+
+PA-127904:
+  patient: John Smith, DOB 01/15/1972, drug: Rinvoq,
+  condition: Rheumatoid Arthritis moderate-severe, ICD10: M05.79,
+  status: denied, submitted: Mar 22 2025, due: Mar 26 2025,
+  payer: Aetna Better Health, payerContact: 1-800-872-3862,
+  denialReason: "Not medically necessary based on provided documentation — 
+    step therapy with ≥2 csDMARDs not documented",
+  priority: high, docs: ["clinical_notes.pdf"],
+  timeline: [submitted Mar22, received Mar22, in_review Mar23, denied Mar26]
+
+PA-717253:
+  patient: John Smith, DOB 01/15/1972, drug: Keytruda,
+  condition: Type 2 Diabetes Mellitus without complications, ICD10: E11.9,
+  status: approved, submitted: Mar 26 2025, due: Mar 30 2025,
+  payer: Aetna Better Health,
+  authNumber: ATN-2025-5523, validFrom: Mar 30 2025, validUntil: Sep 30 2025,
+  priority: normal, docs: ["clinical_notes.pdf","specialist_letter.pdf","lab_results.pdf"],
+  timeline: [submitted Mar26, received Mar26, in_review Mar27, approved Mar30]
+
+PA-554089:
+  patient: Sarah Williams, DOB 12/12/1990, drug: Humira,
+  condition: Unspecified asthma uncomplicated, ICD10: J45.20,
+  status: review, submitted: Apr 4 2025, due: Apr 19 2025,
+  payer: UnitedHealthcare, payerContact: 1-888-382-8888,
+  priority: normal, docs: ["clinical_notes.pdf","prior_auth_form.pdf"],
+  timeline: [submitted Apr4, received Apr4, info_requested Apr6]
+
+PA-830978:
+  patient: James Wilson, DOB 11/05/1975, drug: Rinvoq,
+  condition: Plaque psoriasis, ICD10: L40.0,
+  status: review, submitted: Apr 6 2025, due: Apr 16 2025,
+  payer: BlueCross Health, priority: high,
+  docs: ["clinical_notes.pdf"],
+  timeline: [submitted Apr6, received Apr6, in_review Apr7]
+
+PA-459028:
+  patient: John Smith, DOB 01/15/1972, drug: Rinvoq,
+  condition: Type 2 Diabetes without complications, ICD10: E11.9,
+  status: denied, submitted: Mar 20 2025, due: Mar 22 2025,
+  payer: Aetna Better Health,
+  denialReason: "Missing required documentation — step therapy records not provided",
+  priority: high, docs: [],
+  timeline: [submitted Mar20, received Mar20, denied Mar22]
+
+PA-637797:
+  patient: Emily Davis, DOB 07/18/1980, drug: Humira,
+  condition: Unspecified asthma uncomplicated, ICD10: J45.20,
+  status: pending, submitted: Apr 5 2025, due: Apr 18 2025,
+  payer: Cigna Healthcare, payerContact: 1-800-244-6224,
+  priority: normal, docs: ["clinical_notes.pdf"],
+  timeline: [submitted Apr5]
+
+PA-375472:
+  patient: James Wilson, DOB 11/05/1975, drug: Xeljanz,
+  condition: Malignant neoplasm of bronchus or lung, ICD10: C34.90,
+  status: review, submitted: Mar 30 2025, due: Apr 11 2025,
+  payer: BlueCross Health, priority: high,
+  docs: ["clinical_notes.pdf","oncology_report.pdf"],
+  timeline: [submitted Mar30, received Mar30, in_review Apr1]
+
+PA-559773:
+  patient: Emily Davis, DOB 07/18/1980, drug: Humira,
+  condition: Essential (primary) hypertension, ICD10: I10,
+  status: approved, submitted: Apr 7 2025, due: Apr 13 2025,
+  payer: Cigna Healthcare,
+  authNumber: CGN-2025-2241, validFrom: Apr 13 2025, validUntil: Oct 13 2025,
+  priority: normal, docs: ["clinical_notes.pdf","lab_results.pdf"],
+  timeline: [submitted Apr7, received Apr7, in_review Apr9, approved Apr13]
+
+PA-954126:
+  patient: David Johnson, DOB 09/03/1968, drug: Dupixent,
+  condition: Plaque psoriasis, ICD10: L40.0,
+  status: review, submitted: Mar 27 2025, due: Apr 4 2025,
+  payer: Humana, payerContact: 1-800-486-2620,
+  priority: normal, docs: ["clinical_notes.pdf"],
+  timeline: [submitted Mar27, received Mar27, in_review Mar29]
+
+PATIENTS (3):
+
+PT-001: James Wilson, MRN: MRN-448821, DOB 11/05/1975, age 49, Male,
+  phone (555)234-5678, email j.wilson@email.com,
+  insurance: BlueCross Health, memberId: BCH-448821,
+  plan: BlueCross Gold PPO, deductible: $1,500 (met $1,200), copay: $35 specialist,
+  payer: BlueCross Health, payerContact: 1-800-275-2583,
+  conditions: [Type 2 Diabetes Mellitus, Plaque Psoriasis, Hypertension],
+  allergies: [Penicillin],
+  lastVisit: Apr 6 2025,
+  medications: [
+    {Ozempic, 1mg/week, Type 2 Diabetes, approved, BCH-2025-8841},
+    {Rinvoq, 15mg/day, Plaque Psoriasis, review, null}
+  ]
+
+PT-002: John Smith, MRN: MRN-112233, DOB 01/15/1972, age 53, Male,
+  insurance: Aetna Better Health, memberId: ATN-112233,
+  plan: Aetna Silver HMO, deductible: $2,000 (met $1,800), copay: $50 specialist,
+  payer: Aetna Better Health, payerContact: 1-800-872-3862,
+  conditions: [Rheumatoid Arthritis, Type 2 Diabetes, Osteoarthritis],
+  allergies: [Sulfa drugs],
+  lastVisit: Mar 26 2025,
+  medications: [
+    {Rinvoq, 15mg/day, Rheumatoid Arthritis, denied, null},
+    {Keytruda, 200mg q3w IV, Type 2 Diabetes, approved, ATN-2025-5523}
+  ]
+
+PT-003: Sarah Williams, MRN: MRN-993312, DOB 12/12/1990, age 34, Female,
+  insurance: UnitedHealthcare, memberId: UHC-993312,
+  plan: UnitedHealthcare Choice Plus, deductible: $1,800 (met $600), copay: $40,
+  payer: UnitedHealthcare, payerContact: 1-888-382-8888,
+  conditions: [Unspecified asthma, Crohn's Disease],
+  allergies: [Aspirin],
+  lastVisit: Apr 4 2025,
+  medications: [
+    {Humira, 40mg biweekly, Asthma, review, null}
+  ]
+
+REAUTH CASES (2):
+
+RA-001:
+  patient: Jennifer Lee,
+  drug: Humira (adalimumab), drugShort: Humira,
+  condition: Psoriatic Arthritis,
+  originalApproval: 03/15/2023,
+  reauthorized: 06/01/2023,
+  newExpiration: 12/01/2023,   ← NOTE: this column now shown in table
+  daysUntilExpiry: 42,
+  urgency: normal,
+  authNumber: BCH-2023-4412
+
+RA-002:
+  patient: Michael Thompson,
+  drug: Xarelto (rivaroxaban), drugShort: Xarelto,
+  condition: DVT Prophylaxis,
+  originalApproval: 02/20/2023,
+  reauthorized: 05/15/2023,
+  newExpiration: 11/15/2023,   ← NOTE: this column now shown in table
+  daysUntilExpiry: 15,
+  urgency: urgent,
+  authNumber: ATN-2023-8831
+
+
+════════════════════════════════════════════════════════════════
+SECTION 5: PROVIDER MODULE — ALL SCREENS
+════════════════════════════════════════════════════════════════
+
+Provider sidebar nav:
+  MAIN MENU section:
+    Dashboard | New PA Request | Active Cases | Appeals | Reauthorizations
+  SUPPORT section:
+    AI Assistant
+  ACCOUNT section:
+    Logout
+  Bottom: avatar (blue "SM") + "Dr. Sarah Mitchell" + "Physician"
+  Active item: blue-lt bg + 2px blue left border + blue text + semi-bold
+
+─────────────────────────────────────────────────────────────
+5A. PROVIDER DASHBOARD (/provider/dashboard)
+─────────────────────────────────────────────────────────────
+Welcome header: "Welcome, Dr. Sarah Mitchell"
+Subtitle: "Manage your patients' prior authorizations and view status updates."
+
+4 KPI stat chips in a row (icon circle + count + label):
+  Pending (amber clock) | In Review (blue eye) | Approved (green check) | Denied (red X)
+  Count from live data.
+
+Two-column layout (65% / 35%):
+
+LEFT — "Recent Authorizations":
+  Subsection "Recent Activity":
+  List of last 5 PA events (icon + title + patient + date):
+    Each item has colored circle icon matching status:
+      green check = approved, blue eye = in review, amber clock = pending, red X = denied
+    Format: "PA [status] for [Drug]" | "Patient: [Name] | [Date]"
+  List items are clickable → opens PA Detail Modal
+
+RIGHT — "Priority Alerts":
+  Subsection "Alerts & Reminders":
+  Three alert cards stacked:
+    1. Blue info card: "🕐 1 Case Due Soon — Review deadlines within 3 days"
+    2. Solid blue card (--blue bg, white text): 
+       "New Payer Policy Update" bold
+       "Changes to coverage criteria for oncology medications"
+    3. Pink/red card: "⚠ 2 Appeal Opportunities — Review denied cases and file appeals as needed"
+  Cards have border-radius 10px, padding 14px
+
+─────────────────────────────────────────────────────────────
+5B. ACTIVE CASES (/provider/cases)
+─────────────────────────────────────────────────────────────
+Page header row:
+  Left: "Active Prior Authorization Cases" (bold, 20px)
+  Right: "+ New PA Request" blue button — clicking opens New PA Request MODAL
+
+Full-width table with these exact columns:
+  CASE ID | PATIENT | MEDICATION | STATUS | DATE | ACTION
+
+CASE ID column: PA-XXXXXX in monospace font, 12px, --ink2 color
+PATIENT column: Patient name (13px, font-weight 500) + DOB gray below (11px)
+MEDICATION column: Drug name (13px) + condition text below in gray (11px, max 50 chars)
+STATUS column: Status badge component
+DATE column: 
+  Shows submission date on line 1
+  Shows "Approved: [date]" or "Denied: [date]" or "Due: [date]" in gray below
+ACTION column (right-aligned):
+  approved → "View Details" blue link
+  denied   → "View Details" blue link + "Appeal" red link (space between)
+  review   → "View Details" blue link  
+  pending  → "View Details" blue link
+
+All rows clickable → opens PA Detail Modal.
+Table in white card with border, overflow-x scroll on mobile.
+No pagination for MVP (show all 10).
+
+─────────────────────────────────────────────────────────────
+5C. NEW PA REQUEST — MODAL (not a page)
+─────────────────────────────────────────────────────────────
+Triggered by "+ New PA Request" button anywhere in provider module.
+Opens as a centered modal overlay (dark bg rgba(0,0,0,0.5)).
+Modal: white, border-radius 14px, max-width 720px, max-height 90vh, scrollable body.
+Box-shadow: 0 20px 60px rgba(0,0,0,0.25)
+
+MODAL HEADER (sticky):
+  "New Prior Authorization Request" (18px, bold)
+  Subtitle: "Complete the form below to submit a new prior authorization request." (13px, gray)
+  X close button (top-right corner, 28px × 28px)
+
+MODAL BODY (scrollable, padding 24px):
+2-column grid layout for paired fields, full-width for textareas/upload:
+
+Row 1 (2 cols):
+  Patient Name* | Date of Birth* (type=date, format dd/mm/yyyy)
+  
+Row 2 (2 cols):
+  Diagnosis* (placeholder "Rheumatoid Arthritis") | Diagnosis Code (placeholder "M06.9")
+
+Row 3 (2 cols):
+  Medication* (placeholder "Humira (adalimumab)") | Dosage (placeholder "40mg every other week")
+
+Row 4 (full width):
+  Previous Treatments (textarea, 3 rows, placeholder "List previous treatments and outcomes")
+
+Row 5 (full width):
+  Clinical Justification (textarea, 4 rows, placeholder "Explain why this medication is medically necessary")
+
+Row 6 (full width — drag & drop upload zone):
+  Label: "Supporting Documents"
+  Dashed border zone (border: 2px dashed #D1D5DB, border-radius 10px, padding 32px, text-center):
+    Upload arrow icon (↑ in a box shape, gray)
+    "Drag files here or click to browse" (14px)
+    "Upload clinical notes, lab results, or other supporting documents" (12px, gray)
+  Clicking zone opens file picker (accept .pdf,.jpg,.png,.docx)
+  Show attached file names below zone
+
+Row 7 (2 cols):
+  Prescribing Physician (pre-filled "Dr. Sarah Mitchell") | NPI (pre-filled "1234567890")
+
+Separator line above footer.
+
+MODAL FOOTER (sticky, border-top):
+  Right-aligned: Cancel (ghost button) + "Submit PA Request" (blue button, font-weight 600)
+
+Form validation:
+  Required fields: Patient Name, Date of Birth, Diagnosis, Medication
+  Submit → validate → if valid: POST /api/cases → close modal → show success toast
+  Success toast: "PA request submitted successfully! Case ID: PA-XXXXXX"
+  Generated ID format: "PA-" + 6 random digits
+
+─────────────────────────────────────────────────────────────
+5D. APPEALS MANAGEMENT (/provider/appeals)
+─────────────────────────────────────────────────────────────
+Page title: "Appeals Management" (20px bold, with separator line below)
+
+Section 1: "Denied Authorizations"
+Table columns: CASE ID | PATIENT | MEDICATION | DENIAL REASON | DENIED DATE | ACTION
+  CASE ID: monospace
+  PATIENT: name text
+  MEDICATION: plain text
+  DENIAL REASON: text (gray, max 200 chars, truncate with tooltip)
+  DENIED DATE: formatted date
+  ACTION: "File Appeal" in red (#DC2626, font-weight 600, cursor pointer)
+    Clicking "File Appeal" → opens AI Chat modal pre-loaded with Appeal Generator
+
+Show only denied cases: PA-127904 (David Johnson/Ozempic, Apr 5), PA-459028 (Lisa Martinez/Rinvoq, Apr 14)
+Note: Use exact patient/drug from screenshots for this section.
+
+Section 2: "Active Appeals"
+Empty state: centered text "No active appeals to display" (gray, 14px)
+
+─────────────────────────────────────────────────────────────
+5E. REAUTHORIZATIONS (/provider/reauth)
+─────────────────────────────────────────────────────────────
+Page title: "Reauthorizations"
+
+Section 1: "Reauthorization Management" (18px, bold, separator below)
+
+Subsection: "Upcoming Reauthorizations"
+  Empty state text: "No upcoming reauthorizations needed in the next 30 days"
+  (Gray, centered. Even though RA cases exist in data, they show in Recently Reauthorized
+   since their newExpiration dates are in 2023 — past)
+
+Subsection: "Recently Reauthorized"
+Table with these EXACT columns (match screenshot):
+  PATIENT | MEDICATION | ORIGINAL APPROVAL | REAUTHORIZED | NEW EXPIRATION
+  
+  Each row:
+    PATIENT: patient name (font-weight 500)
+    MEDICATION: drug name bold + condition text below in gray smaller font
+    ORIGINAL APPROVAL: date string (03/15/2023)
+    REAUTHORIZED: date string (06/01/2023)
+    NEW EXPIRATION: date string (12/01/2023) ← This column is KEY, was missing before
+
+  Show RA-001 (Jennifer Lee / Humira / Psoriatic Arthritis) and
+       RA-002 (Michael Thompson / Xarelto / DVT Prophylaxis)
+
+─────────────────────────────────────────────────────────────
+5F. AI FEATURES (/provider/ai)
+─────────────────────────────────────────────────────────────
+Top: Blue-tinted banner card (--blue-lt bg, --blue-bd border):
+  "GenAI-Powered" small pill badge (blue bg, white text)
+  "ClearAuth AI Capabilities" (22px bold)
+  Description paragraph
+  "Open AI Assistant" blue button → opens AI Chat Modal
+
+3 tabs below banner (outlined tab style, "Document Analyzer" pre-selected 
+ when coming from cases with documents):
+  [Form Assistant] [Document Analyzer] [PA Insights]
+
+TAB: FORM ASSISTANT
+2-column layout:
+  Left card:
+    "⚡ AI-Powered Form Assistant" heading + description
+    Patient Diagnosis input (placeholder "e.g. Severe persistent asthma…")
+    Additional Patient Information textarea
+    "⚡ Auto-Complete Form" blue button → opens AI chat with clinical_doc prompt
+  Right: AI Benefits list (5 items with colored icons):
+    ⚡ Reduced Administrative Burden — reduces manual work by up to 70%
+    📈 Increased Approval Rates — increases first-pass approval rates by 35%
+    📄 Improved Documentation — identifies gaps, suggests improvements
+    📚 Medical Knowledge — aligns justifications with current guidelines
+    🚀 Faster Turnaround — reduces PA processing time by 62%
+    Each item: icon (in colored rounded square) + title + description
+
+TAB: DOCUMENT ANALYZER
+2-column layout (main content left, AI Benefits right):
+  Left section "Document Analysis":
+    Subtitle: "AI-powered analysis of documentation for prior authorization"
+    File row card (border, rounded):
+      📘 icon + "Clinical Documentation.pdf" bold + "Medical Records" gray
+      Right: "Analyze" button (outline style with search icon)
+    After clicking Analyze (show loading for 1 second then reveal):
+      "✓ Analyzed" green text replaces button
+      Progress bars:
+        "Relevance to PA Request" — 85% — blue fill bar
+        "Documentation Completeness" — 72% — blue fill bar
+        (show percentage right-aligned, gray unfilled portion)
+      
+      ✓ Documentation Strengths (green heading with check icon):
+        • Contains detailed diagnosis information
+        • Includes current medication list and dosages
+        • Documents previous treatment failures
+        • Provides objective measures (lab values, test scores)
+      
+      ⚠ Documentation Gaps (amber heading with triangle icon):
+        • Missing specific duration of previous treatments
+        • Incomplete information on side effects experienced
+        • No specialist consultation notes attached
+      
+      → AI Recommendations (blue heading with arrow icon):
+        • Add documentation of treatment durations
+        • Include specific details on adverse effects
+        • Attach recent specialist consultation notes
+        • Consider adding functional assessment scores
+      
+      Footer italic text: "Addressing these recommendations will increase 
+        the likelihood of prior authorization approval."
+  
+  Right: AI Benefits list (same as Form Assistant tab)
+  Below AI Benefits: "Implementation Notes" section:
+    Title bold, text: "This page demonstrates how GenAI could be integrated 
+    into the prior authorization workflow. In a production environment, these 
+    features would connect to an LLM API like:"
+    Bullet list: OpenAI GPT-4 or GPT-4o | Anthropic Claude (claude-sonnet-4-6) | 
+                 Google Gemini Pro | Azure OpenAI Service
+
+TAB: PA INSIGHTS  
+2-column layout:
+  Left card "AI-Powered PA Insights":
+    Subtitle: "Predictive analytics and insights to improve PA success rates"
+    3 metric cards in a row:
+      Card 1: "Approval Likelihood" — 78% (green, large font) — "High" green badge — 
+              "Based on similar cases" gray
+      Card 2: "Average Processing Time" — 3.2 (blue large) — "days for similar cases"
+      Card 3: "Documentation Score" — 82% (amber large) — "Completeness rating"
+    2-column below metrics:
+      Left "⚡ Key Success Factors":
+        • Detailed clinical documentation
+        • Previous treatment failure evidence
+        • Specialist supporting documentation
+        • Objective symptom severity measures
+      Right "→ Recommendations":
+        • Include recent lab results showing disease activity
+        • Add documentation of adverse effects from previous treatments
+        • Attach pharmacy records showing medication compliance
+        • Submit specialist consultation notes
+    Blue info box "🔍 Similar Cases Analysis":
+      "AI analysis of similar cases indicates that including detailed 
+       documentation of previous treatment failures and objective disease 
+       severity measures increases approval rates by approximately 35%. 
+       For this specific case type, payer typically requires step therapy 
+       documentation and specialist consultation notes."
+  Right: AI Benefits list
+
+
+════════════════════════════════════════════════════════════════
+SECTION 6: PATIENT MODULE — ALL SCREENS
+════════════════════════════════════════════════════════════════
+
+Patient sidebar nav:
+  MY HEALTH: My Dashboard | My PA Journey | My Cases | My Documents
+  SUPPORT: AI Assistant | Logout
+  Bottom: green avatar "RB" + "Robert Brown" + "Patient"
+
+─────────────────────────────────────────────────────────────
+6A. PATIENT DASHBOARD (/patient/dashboard)
+─────────────────────────────────────────────────────────────
+Welcome: "Welcome, Robert Brown" + subtitle
+
+4 KPI chips: In Review | Approved | Denied | Re-auth Due
+
+2-column:
+  Left:
+    "Current PA Status" card (blue left border 4px):
+      Drug: Humira (adalimumab)
+      Case: PA-554089 | Status badge
+      Plain-language: "Your doctor submitted a request to BlueCross Health. 
+        A medical reviewer is currently evaluating your case."
+      Expected decision: "3-5 business days"
+      "Track Journey →" outline button
+    
+    "My Medications" card:
+      Row per drug: name + dose + condition + status badge
+  
+  Right:
+    Insurance Plan card:
+      Plan logo area (blue icon 🛡) + "BlueCross Health" bold + "Gold PPO" 
+      Member ID / Plan / Deductible / Copay / Payer Contact (each as key:value row)
+    
+    Amber alert: "📋 Action May Be Needed: If your PA is denied, your doctor 
+      can file an appeal. You have the right to a peer-to-peer review. 
+      Learn more →"
+
+─────────────────────────────────────────────────────────────
+6B. PA JOURNEY (/patient/journey) ← KEY PATIENT SCREEN
+─────────────────────────────────────────────────────────────
+This screen shows the patient EXACTLY where they are in the PA process.
+
+Case summary card at top:
+  "Humira (adalimumab) — PA-554089"
+  "Submitted by Dr. Sarah Mitchell to BlueCross Health · Apr 4, 2025"
+  Status badge
+
+VISUAL STEP TRACKER (horizontal, 6 steps):
+  Steps connected by horizontal line.
+  Completed steps: blue filled circle with ✓ checkmark
+  Current step: amber pulsing circle (CSS animation, pulse effect)
+  Future steps: gray outlined circle with step number
+
+  Step 1: PA Submitted ✓         Apr 4, 2025
+  Step 2: Received by Payer ✓    Apr 4, 2025
+  Step 3: Clinical Review ✓      Apr 5, 2025
+  Step 4: Decision Pending ←     Est. Apr 9, 2025  ← CURRENT (amber pulse)
+  Step 5: Decision               Est. Apr 9–11, 2025
+  Step 6: Treatment Starts       TBD
+
+  Line between steps: blue for completed segments, gray for future.
+  Below each step: label (bold, 11px) + date (gray, 10px)
+
+6 DETAIL CARDS (2×3 grid below tracker):
+  Each card explains one step. Current step card has blue border + blue-lt bg.
+  Card content: step icon emoji + step name (bold, color-coded) + description text + date
+
+EVIDENCE DOCUMENTS CARD:
+  "Evidence Being Reviewed" title
+  4 document tiles (2×2 or 4 in a row):
+    Clinical Notes — ✅ Submitted (green)
+    Lab Results — ✅ Submitted (green)
+    Prior Auth Form — ✅ Submitted (green)
+    Specialist Letter — ⏳ Needed (amber) — with amber border
+
+─────────────────────────────────────────────────────────────
+6C. MY CASES (/patient/cases)
+─────────────────────────────────────────────────────────────
+Table showing patient's own cases:
+  CASE ID | DRUG chip | CONDITION | DOCTOR | PAYER chip | STATUS badge | DATE | "Track →" button
+
+─────────────────────────────────────────────────────────────
+6D. MY DOCUMENTS (/patient/docs)
+─────────────────────────────────────────────────────────────
+Blue AI banner: "💡 AI Suggestion: Your doctor needs a specialist consultation 
+  letter for PA-554089. Ask your pulmonologist to send notes via ClearAuth."
+"+ Upload Document" button in header
+
+6-card grid (2 columns):
+  Each card: icon + name + type + date + status badge
+  Status: Submitted (green), Needed (amber), Uploaded (blue)
+  "Needed" cards: "Upload Document" blue button inside card
+  Files: Clinical Notes (Submitted) / Lab Results (Submitted) / PA Form (Submitted) /
+         Specialist Letter (Needed) / Pharmacy Records (Uploaded) / Imaging Report (Uploaded)
+
+─────────────────────────────────────────────────────────────
+6E. PATIENT AI ASSISTANT (/patient/ai)
+─────────────────────────────────────────────────────────────
+Green-tinted banner with "Open AI Chat →" green button.
+AI feature list + pre-loaded PA Status Helper response panel.
+Features: Treatment Explainer / PA Status Helper / Side Effect Guidance
+
+
+════════════════════════════════════════════════════════════════
+SECTION 7: PAYER MODULE — ALL SCREENS
+════════════════════════════════════════════════════════════════
+
+Payer sidebar: 
+  REVIEW QUEUE: Dashboard | Active Cases
+  AI TOOLS: AI Features
+  Logout
+  Bottom: amber avatar "SW" + "Sam Wilson" + "Payer — BlueCross Health"
+
+─────────────────────────────────────────────────────────────
+7A. PAYER DASHBOARD (/payer/dashboard)
+─────────────────────────────────────────────────────────────
+4 KPIs: Pending 10 | In Review 13 | Approved 0 | Denied 0
+
+2-column:
+  Left "Review Queue":
+    5 case cards. Each card:
+      [Drug name bold] [status badge right] [priority badge if high]
+      [ID: PA-XXXXX · Provider name]          [Due: date right]
+      3 buttons: [🤖 ghost] [Approve blue] [Deny red-ghost]
+    Card hover: border-color blue
+    Clicking Approve → PATCH /api/cases/:id {status:'approved'} → 
+      generate authNumber → show success toast → refresh counts
+    Clicking Deny → show inline denial reason input then confirm
+
+  Right:
+    "Workload Overview" card:
+      Today's Reviews: 10
+      Approaching Deadline: 3 (amber)
+      Appeals to Review: 2 (red)
+      Completed Today: 7 (green)
+    
+    "Processing Metrics" card:
+      Avg. Review Time: 1.8 days
+      Approval Rate: 73%
+      Request Volume: +12% ↑
+
+─────────────────────────────────────────────────────────────
+7B. PAYER ACTIVE CASES (/payer/cases)
+─────────────────────────────────────────────────────────────
+"Active Prior Authorization Cases" heading
+Status filter + "🤖 AI Review" button
+
+Table: CASE ID | PATIENT (name + DOB) | MEDICATION (chip + condition) | 
+       PROVIDER | STATUS badge | DATE (submitted + due) | ACTIONS (View + Approve + 🤖)
+
+─────────────────────────────────────────────────────────────
+7C. PAYER AI FEATURES (/payer/ai)
+─────────────────────────────────────────────────────────────
+Amber-tinted banner + "Open AI Assistant" button.
+Features: Clinical Review / Guideline Match / Alternative Suggestions
+Pre-loaded Guideline Match response showing coverage criteria analysis.
+
+
+════════════════════════════════════════════════════════════════
+SECTION 8: GLOBAL MODALS
+════════════════════════════════════════════════════════════════
+
+─────────────────────────────────────────────────────────────
+8A. PA DETAIL MODAL
+─────────────────────────────────────────────────────────────
+Triggered by clicking any case row or "View Details" link.
+Width 760px, max-height 88vh, scrollable body, border-radius 14px.
+
+MODAL HEADER:
+  "Case PA-XXXXXX — [Patient Name]" (16px bold)
+  X close button
+
+MODAL BODY:
+  Status badges row + payer chip + drug chip + priority badge (if high)
+  
+  6-cell info grid (3×2):
+    Patient | DOB | Condition | Submitted | Due | Auth Number (or "Pending")
+  
+  "PA Journey" section (visual step tracker same as patient view):
+    Position determined by case status:
+      pending → step 1 active
+      review  → step 3 active
+      approved → step 4 (notification sent)
+      denied  → denial at step 3/4
+  
+  Denial reason alert (red bg) if denied:
+    Shows denial reason text
+    Two buttons: "🤖 Generate Appeal" blue + "View Denial Letter" ghost
+    Clicking "Generate Appeal" → opens AI Chat with appeal_gen pre-loaded
+  
+  Auth number success alert (green bg) if approved:
+    "✓ Authorised: Auth Number [AUTH#] | Valid: [date] – [date]"
+  
+  Documents section:
+    List of attached documents (icon + filename + View button)
+    "+ Attach Document" outline button
+  
+  Timeline section (vertical):
+    Each event: colored dot + title + description + date
+    Color: blue=submitted/received, amber=in_review/info_requested, 
+           green=approved, red=denied
+  
+MODAL FOOTER:
+  Close ghost + primary action button:
+    pending → "Share with Payer →"
+    review  → "Request Update"
+    denied  → "File Appeal →" (red)
+    approved → "Download Auth Letter"
+
+─────────────────────────────────────────────────────────────
+8B. AI CHAT MODAL
+─────────────────────────────────────────────────────────────
+Triggered by any "Open AI Assistant" button.
+Width 700px, height 520px fixed, border-radius 14px.
+Box-shadow 0 20px 60px rgba(0,0,0,0.2)
+
+MODAL HEADER (56px, border-bottom):
+  🤖 icon + "ClearAuth AI Assistant" (15px bold) + "GenAI-Powered" blue badge
+  X close button
+
+TWO-PANEL BODY (fills remaining height):
+  Left panel (180px, border-right, overflow-y auto, padding 12px):
+    "⚡ AI Features" label (11px uppercase bold gray)
+    Feature list items (per role):
+      Provider: Clinical Documentation / Evidence Search / Appeal Generator / PA Insights
+      Patient:  Treatment Explainer / PA Status Helper / Side Effect Guidance
+      Payer:    Clinical Review / Guideline Match / Alternative Suggestions
+    Each feature item: title (12.5px bold) + subtitle (11px gray)
+    Hover: --surface2 bg. Active: --blue-lt bg.
+    Clicking feature → immediately show AI response for that feature
+  
+  Right panel (flex-1, flex-column):
+    Quick chips row (top, flex-wrap):
+      Provider chips: "Draft appeal letter" | "Check approval likelihood" | 
+                      "What documents are needed?" | "Summarise clinical docs"
+      Patient chips:  "What does my status mean?" | "How long will this take?" | 
+                      "What if it's denied?" | "Explain my medication"
+      Payer chips:    "Match to guidelines" | "Clinical criteria check" | 
+                      "Suggest alternatives" | "Draft denial letter"
+      Chip style: blue-lt bg, blue text, blue-bd border, 999px radius, 11.5px, 
+                  cursor pointer, hover → blue bg white text
+    
+    Chat messages area (flex-1, overflow-y auto, padding 16px, gap 12px):
+      Initial AI message: "👋 Hi! I'm the ClearAuth AI Assistant..."
+      AI messages: gray bg, left-aligned, border-radius 2px 10px 10px 10px
+      User messages: blue bg white text, right-aligned, border-radius 10px 2px 10px 10px
+    
+    Input area (border-top, padding 12px 16px):
+      Textarea (flex-1, min-height 38px) + "Send ↗" blue button
+      Enter key (without shift) sends message
+
+AI RESPONSE MAP (12 responses):
+  "clinical_doc" → Clinical Documentation Generated: ICD-10 auto-pulled, 
+    justification template for Type 2 Diabetes + Ozempic, documents to attach listed.
+  
+  "evidence_search" → Evidence Search Results for Rinvoq in RA: 
+    3 study citations (SELECT-COMPARE NEJM 2019, ACR Guidelines 2024, 
+    step therapy documentation), recommendation to include ACR score.
+  
+  "appeal_gen" → Full formal appeal letter:
+    "Dear Medical Director, I am writing to formally appeal the denial of 
+    prior authorization for Rinvoq (upadacitinib 15mg) for my patient John Smith 
+    (DOB: 01/15/1972, ID: ATN-112233). [Full letter with diagnosis, prior 
+    treatments, clinical evidence, respectful request for reconsideration, 
+    physician signature block]"
+  
+  "pa_insights" → Approval Likelihood 78%, Processing Time 3.2 days, 
+    Doc Score 82%, Key Success Factors (4 bullets), Similar case analysis.
+  
+  "treatment_explain" → Plain language: "Humira is a biologic medication...
+    Why you need PA... What happens next (4 numbered steps)... Timeline 3-5 days"
+  
+  "pa_status" → Status explanation for "In Review": What it means, who is 
+    responsible, timeframe, what happens if approved vs denied, how to check.
+  
+  "side_effects" → Humira side effects: common (>10%), serious (watch for), 
+    when to call doctor, when to call 911.
+  
+  "clinical_review" → Coverage Policy Analysis: policy number, required criteria,
+    criteria met, criteria NOT met (gaps found: eosinophil count, spirometry), 
+    recommendation to request additional documentation.
+  
+  "guideline_match" → Guideline Match for Entresto: 
+    ✓ Policy BCH-CARDIO-2024 matches HFrEF EF≤40%
+    ✓ Step therapy: ACE inhibitor trial documented
+    ✓ NYHA Class II-III confirmed
+    ✓ Specialist letter attached
+    Status: MEETS ALL CRITERIA → APPROVE 12-month authorization.
+  
+  "alt_suggest" → Alternatives for Rinvoq denied in RA:
+    1. Methotrexate (Tier 1) $10/month
+    2. Hydroxychloroquine (Tier 1)  
+    3. Enbrel (Tier 3, PA required, higher approval rate)
+    4. Humira (Tier 3, covered with step therapy docs)
+  
+  "timeline" → Processing timelines: standard 3-5 days, urgent 24-72h, 
+    real-time FHIR <1h, factors affecting timing, current case estimate.
+  
+  "denial_rights" → Patient rights after denial: 
+    4-step appeals process, success rates (1st level 42%, peer-to-peer 58%, 
+    external review 35%), offer to draft appeal letter.
+
+Context-aware response routing — match on these keywords:
+  "appeal" or "denied" → appeal_gen
+  "evidence" or "document" or "docs" → evidence_search
+  "likelihood" or "approval" or "insight" → pa_insights
+  "status" or "mean" or "what does" → pa_status
+  "humira" or "medication" or "explain" or "treatment" → treatment_explain
+  "side effect" → side_effects
+  "guideline" or "coverage" or "criteria" → guideline_match
+  "alternative" or "covered" or "formulary" → alt_suggest
+  "how long" or "timeline" or "when" → timeline
+  "rights" or "denied" or "what if" → denial_rights
+  default → helpful generic response offering available features
+
+
+════════════════════════════════════════════════════════════════
+SECTION 9: BACKEND API
+════════════════════════════════════════════════════════════════
+
+Express.js server on port 3001. CORS enabled for localhost:5173.
+All data stored in memory (module-level arrays, initialized from seed data).
+
+ROUTES:
+
+GET  /api/cases              → returns all cases, supports ?status= and ?payer= filter
+GET  /api/cases/:id          → single case with full timeline
+POST /api/cases              → create new PA case
+  body: NewPAFormData fields
+  auto-generates id (PA-XXXXXX), sets status=pending, 
+  adds submitted timeline event, returns created case
+
+PATCH /api/cases/:id         → update case
+  Allowed fields: status, denialReason, authNumber, authValidFrom, authValidUntil
+  Business logic:
+    status → 'approved': auto-generate authNumber if not provided
+      format: [PAYER_PREFIX]-[YEAR]-[4digits]
+      Payer prefixes: BlueCross→BCH, Aetna→ATN, UnitedHealthcare→UHC, 
+                      Cigna→CGN, Humana→HUM
+    status → 'denied': denialReason required
+    Any status change: add timeline event automatically
+    All changes update updatedAt timestamp
+
+POST /api/cases/:id/submit   → mark as submitted to payer
+  Changes status from 'pending' to 'review'
+  Adds timeline event: "Received by Payer" + "Under Clinical Review"
+  Returns updated case
+
+POST /api/cases/:id/appeal   → file appeal
+  Changes status to 'review' (re-review after denial)
+  Adds timeline event: "Appeal Filed"
+  Returns updated case
+
+GET  /api/patients           → all patients
+GET  /api/patients/:id       → single patient
+
+GET  /api/reauth             → all reauth cases
+
+POST /api/ai                 → AI response
+  body: { role: 'provider'|'patient'|'payer', feature: string, message: string }
+  Returns mock response from response map based on feature or keyword matching
+  Response format: { response: string, feature: string, timestamp: string }
+
+
+════════════════════════════════════════════════════════════════
+SECTION 10: BUSINESS PROCESS ACCURACY
+════════════════════════════════════════════════════════════════
+
+These business rules must be enforced in the application:
+
+1. PA LIFECYCLE (enforced in UI and API):
+   new → pending → review → approved | denied
+   denied → appealed → review → approved | denied
+   approved → reauth_due (when approaching expiry) → reauth_review → reauth_approved
+
+2. PROVIDER CAN:
+   - Create new PA (POST /api/cases)
+   - View all their cases
+   - Attach documents to pending/review cases
+   - Share case with payer (submit channel)
+   - File appeal for denied cases
+   - Start re-auth process for expiring approvals
+   Provider CANNOT: approve, deny, or make coverage decisions
+
+3. PATIENT CAN:
+   - View their own cases only (filter by patientId)
+   - See current journey step in plain language
+   - Upload documents (supporting evidence)
+   - Track document status
+   - Use AI for plain-language explanations
+   Patient CANNOT: submit PAs (doctor does that), approve, deny, access other patients
+
+4. PAYER CAN:
+   - See all cases in their queue
+   - Approve cases (generates auth number)
+   - Deny cases (must provide reason)
+   - Request additional information (sets status to 'review' with info_requested event)
+   Payer CANNOT: create PA requests, file appeals
+
+5. AUTH NUMBER GENERATION:
+   Format: [PAYER_PREFIX]-[YYYY]-[4-digit random]
+   Valid period: 6 months from approval date (default)
+   Auth number stored on case, surfaced to provider and patient immediately
+
+6. DENIAL FLOW:
+   Payer denies → denial reason required (not optional)
+   Provider notified (shown in dashboard alerts)
+   Patient notified (shown in patient dashboard)
+   "File Appeal" action enabled for 60 days from denial
+   Appeal changes status back to 'review' with 'appealed' timeline event
+
+7. REAUTHORIZATION TRIGGER:
+   Cases with validUntil within 45 days → appear in "Upcoming Reauthorizations"
+   Cases with validUntil in past → "Recently Reauthorized" table (with newExpiration column)
+   Re-auth starts new PA process for same drug/patient
+
+8. DOCUMENT REQUIREMENTS (enforced with visual indicators):
+   Required docs (red label): Clinical Notes, Lab Results, Prior Auth Form
+   Recommended (amber label): Specialist Letter, Step Therapy Records
+   Optional (gray): Imaging/Scans
+   AI suggests missing documents based on drug type and payer rules
+
+9. SUBMISSION CHANNELS (business accurate):
+   HL7 FHIR API: electronic, <1 hour confirmation, preferred for connected EHRs
+   Payer Web Portal: manual, 4-8 hours, good for non-FHIR payers
+   Secure Fax: legacy, 24-48 hours, required for some smaller payers
+
+10. PROCESSING TIMELINES (enforced in display):
+    Standard PA: 3-5 business days (show on case)
+    Urgent/Expedited: 24-72 hours (if priority=high)
+    Real-time: <1 hour (FHIR channel)
+    Display "Due: [date]" in red if high priority, gray if normal
+
+
+════════════════════════════════════════════════════════════════
+SECTION 11: UX INTERACTIONS & TOAST NOTIFICATIONS
+════════════════════════════════════════════════════════════════
+
+Toast system (bottom-right corner, auto-dismiss 4 seconds):
+  Success: green bg "#F0FDF4", green border, ✓ icon
+  Error: red bg, red border, ✗ icon
+  Info: blue bg, blue border, ℹ icon
+  
+  Toast messages:
+    PA submitted: "✓ PA request submitted! Case ID: PA-XXXXXX"
+    PA approved: "✓ Case PA-XXXXXX approved. Auth: [authNumber]"
+    PA denied: "✗ Case denied. Provider and patient have been notified."
+    Appeal filed: "✓ Appeal filed for PA-XXXXXX. Under review."
+    Document attached: "✓ Document attached to case."
+
+Loading states:
+  Table rows: skeleton animation (gray shimmer) while loading
+  Submit buttons: show spinner + "Submitting…" while API call in progress
+  AI responses: show typing indicator (3 animated dots) for 700ms then show response
+  Document Analyze: loading spinner for 1 second then reveal results
+
+Confirmations (browser confirm() or inline):
+  Deny case: "Are you sure you want to deny this case? A denial reason is required."
+  Logout: no confirmation, direct redirect to /login
+
+Form validation inline:
+  Required field outlines turn red-bd when submitted empty
+  Error message below field: "This field is required"
+  Diagnosis Code auto-formats: capitalize, allow letters and numbers
+
+
+════════════════════════════════════════════════════════════════
+SECTION 12: PROJECT STRUCTURE
+════════════════════════════════════════════════════════════════
+
+/
+├── client/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   ├── TopNav.tsx
+│   │   │   │   ├── Sidebar.tsx        (role-specific)
+│   │   │   │   └── AppLayout.tsx      (wraps sidebar + topnav + content)
+│   │   │   ├── shared/
+│   │   │   │   ├── StatusBadge.tsx
+│   │   │   │   ├── DrugChip.tsx
+│   │   │   │   ├── PayerChip.tsx
+│   │   │   │   ├── KPIStat.tsx        (icon circle + count + label)
+│   │   │   │   ├── Toast.tsx          (toast notification system)
+│   │   │   │   ├── ProgressBar.tsx
+│   │   │   │   └── EmptyState.tsx
+│   │   │   └── modals/
+│   │   │       ├── NewPAModal.tsx     (NEW PA FORM — modal not page)
+│   │   │       ├── PADetailModal.tsx  (case details with timeline)
+│   │   │       └── AIChatModal.tsx    (role-aware AI chat)
+│   │   ├── pages/
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── provider/
+│   │   │   │   ├── ProviderLayout.tsx
+│   │   │   │   ├── Dashboard.tsx
+│   │   │   │   ├── ActiveCases.tsx
+│   │   │   │   ├── Appeals.tsx
+│   │   │   │   ├── Reauthorizations.tsx
+│   │   │   │   └── AIFeatures.tsx
+│   │   │   ├── patient/
+│   │   │   │   ├── PatientLayout.tsx
+│   │   │   │   ├── Dashboard.tsx
+│   │   │   │   ├── Journey.tsx
+│   │   │   │   ├── Cases.tsx
+│   │   │   │   ├── Documents.tsx
+│   │   │   │   └── AIAssistant.tsx
+│   │   │   └── payer/
+│   │   │       ├── PayerLayout.tsx
+│   │   │       ├── Dashboard.tsx
+│   │   │       ├── ActiveCases.tsx
+│   │   │       └── AIFeatures.tsx
+│   │   ├── context/
+│   │   │   ├── AuthContext.tsx        (role, user, login/logout)
+│   │   │   └── ToastContext.tsx       (global toast system)
+│   │   ├── hooks/
+│   │   │   ├── useCases.ts
+│   │   │   ├── usePatients.ts
+│   │   │   └── useAI.ts
+│   │   ├── services/
+│   │   │   └── api.ts                 (axios instance + all API calls)
+│   │   ├── types/
+│   │   │   └── index.ts               (all TypeScript interfaces)
+│   │   ├── data/
+│   │   │   └── seed.ts                (mock data for client fallback)
+│   │   ├── styles/
+│   │   │   └── globals.css            (CSS custom properties + base styles)
+│   │   ├── App.tsx
+│   │   └── main.tsx
+│   ├── index.html
+│   └── vite.config.ts
+│
+├── server/
+│   ├── src/
+│   │   ├── index.ts                   (Express app, port 3001)
+│   │   ├── routes/
+│   │   │   ├── cases.ts
+│   │   │   ├── patients.ts
+│   │   │   ├── reauth.ts
+│   │   │   └── ai.ts
+│   │   ├── data/
+│   │   │   ├── store.ts               (in-memory arrays)
+│   │   │   └── seed.ts                (initial data)
+│   │   ├── services/
+│   │   │   └── aiResponses.ts         (mock AI response map)
+│   │   └── utils/
+│   │       └── idGenerator.ts         (PA-XXXXXX + auth number generation)
+│   └── tsconfig.json
+│
+├── package.json                        (workspace with concurrently)
+└── README.md
+
+package.json scripts:
+  "dev": "concurrently \"npm run dev:client\" \"npm run dev:server\""
+  "dev:client": "cd client && vite"
+  "dev:server": "cd server && ts-node-dev src/index.ts"
+  "build": "cd client && vite build"
+
+Dependencies:
+  Frontend: react, react-dom, react-router-dom, axios, typescript, vite
+  Backend: express, cors, typescript, ts-node-dev, @types/express, @types/cors
+  Shared: uuid (for ID generation)
+  Dev: concurrently, @types/node

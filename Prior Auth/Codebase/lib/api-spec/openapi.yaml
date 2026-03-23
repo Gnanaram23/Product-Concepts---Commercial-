@@ -1,0 +1,578 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: ClearAuth PA Platform API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: cases
+    description: Prior Authorization cases
+  - name: patients
+    description: Patient records
+  - name: reauth
+    description: Reauthorization cases
+  - name: ai
+    description: AI assistant
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /cases:
+    get:
+      operationId: listCases
+      tags: [cases]
+      summary: List all PA cases
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: payer
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PACase"
+    post:
+      operationId: createCase
+      tags: [cases]
+      summary: Create a new PA case
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewPAFormData"
+      responses:
+        "201":
+          description: Created case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PACase"
+
+  /cases/{id}:
+    get:
+      operationId: getCase
+      tags: [cases]
+      summary: Get a single PA case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: PA case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PACase"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateCase
+      tags: [cases]
+      summary: Update a PA case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCaseRequest"
+      responses:
+        "200":
+          description: Updated case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PACase"
+
+  /cases/{id}/submit:
+    post:
+      operationId: submitCase
+      tags: [cases]
+      summary: Submit case to payer
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PACase"
+
+  /cases/{id}/appeal:
+    post:
+      operationId: appealCase
+      tags: [cases]
+      summary: File an appeal for a denied case
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Updated case
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PACase"
+
+  /patients:
+    get:
+      operationId: listPatients
+      tags: [patients]
+      summary: List all patients
+      responses:
+        "200":
+          description: List of patients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Patient"
+
+  /patients/{id}:
+    get:
+      operationId: getPatient
+      tags: [patients]
+      summary: Get a single patient
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Patient record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Patient"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /reauth:
+    get:
+      operationId: listReauthCases
+      tags: [reauth]
+      summary: List all reauthorization cases
+      responses:
+        "200":
+          description: List of reauth cases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReauthCase"
+
+  /ai:
+    post:
+      operationId: aiChat
+      tags: [ai]
+      summary: Get AI assistant response
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AIChatRequest"
+      responses:
+        "200":
+          description: AI response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIChatResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    TimelineEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        eventType:
+          type: string
+          enum:
+            - submitted
+            - received
+            - in_review
+            - info_requested
+            - approved
+            - denied
+            - appealed
+            - reauth_started
+            - reauth_approved
+        actor:
+          type: string
+      required:
+        - id
+        - date
+        - title
+        - description
+        - eventType
+        - actor
+
+    PACase:
+      type: object
+      properties:
+        id:
+          type: string
+        patientId:
+          type: string
+        patientName:
+          type: string
+        patientDob:
+          type: string
+        drug:
+          type: string
+        ndcCode:
+          type: string
+        condition:
+          type: string
+        icd10Code:
+          type: string
+        status:
+          type: string
+          enum: [pending, review, approved, denied]
+        submittedDate:
+          type: string
+        dueDate:
+          type: string
+        payer:
+          type: string
+        payerContact:
+          type: string
+        provider:
+          type: string
+        npi:
+          type: string
+        authNumber:
+          type: string
+        authValidFrom:
+          type: string
+        authValidUntil:
+          type: string
+        denialReason:
+          type: string
+        priority:
+          type: string
+          enum: [normal, high]
+        documents:
+          type: array
+          items:
+            type: string
+        submissionChannel:
+          type: string
+          enum: [fhir, portal, fax]
+        previousTreatments:
+          type: string
+        clinicalJustification:
+          type: string
+        dosage:
+          type: string
+        timeline:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimelineEvent"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - patientId
+        - patientName
+        - patientDob
+        - drug
+        - condition
+        - icd10Code
+        - status
+        - submittedDate
+        - dueDate
+        - payer
+        - payerContact
+        - provider
+        - npi
+        - priority
+        - documents
+        - submissionChannel
+        - timeline
+        - createdAt
+        - updatedAt
+
+    NewPAFormData:
+      type: object
+      properties:
+        patientName:
+          type: string
+        dateOfBirth:
+          type: string
+        diagnosis:
+          type: string
+        diagnosisCode:
+          type: string
+        medication:
+          type: string
+        dosage:
+          type: string
+        previousTreatments:
+          type: string
+        clinicalJustification:
+          type: string
+        prescribingPhysician:
+          type: string
+        npi:
+          type: string
+        payer:
+          type: string
+        memberId:
+          type: string
+      required:
+        - patientName
+        - dateOfBirth
+        - diagnosis
+        - medication
+
+    UpdateCaseRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, review, approved, denied]
+        denialReason:
+          type: string
+        authNumber:
+          type: string
+        authValidFrom:
+          type: string
+        authValidUntil:
+          type: string
+
+    PatientMedication:
+      type: object
+      properties:
+        name:
+          type: string
+        dose:
+          type: string
+        condition:
+          type: string
+        paStatus:
+          type: string
+          enum: [pending, review, approved, denied]
+        authNumber:
+          type: string
+        validUntil:
+          type: string
+      required:
+        - name
+        - dose
+        - condition
+        - paStatus
+
+    Patient:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        mrn:
+          type: string
+        dob:
+          type: string
+        age:
+          type: number
+        gender:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        insurance:
+          type: string
+        memberId:
+          type: string
+        plan:
+          type: string
+        deductible:
+          type: string
+        copay:
+          type: string
+        payer:
+          type: string
+        payerContact:
+          type: string
+        conditions:
+          type: array
+          items:
+            type: string
+        medications:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientMedication"
+        allergies:
+          type: array
+          items:
+            type: string
+        lastVisit:
+          type: string
+      required:
+        - id
+        - name
+        - mrn
+        - dob
+        - age
+        - gender
+        - phone
+        - email
+        - insurance
+        - memberId
+        - plan
+        - deductible
+        - copay
+        - payer
+        - payerContact
+        - conditions
+        - medications
+        - allergies
+        - lastVisit
+
+    ReauthCase:
+      type: object
+      properties:
+        id:
+          type: string
+        patientName:
+          type: string
+        drug:
+          type: string
+        drugShort:
+          type: string
+        condition:
+          type: string
+        originalApproval:
+          type: string
+        reauthorized:
+          type: string
+        newExpiration:
+          type: string
+        daysUntilExpiry:
+          type: number
+        urgency:
+          type: string
+          enum: [normal, urgent]
+        authNumber:
+          type: string
+      required:
+        - id
+        - patientName
+        - drug
+        - drugShort
+        - condition
+        - originalApproval
+        - reauthorized
+        - newExpiration
+        - daysUntilExpiry
+        - urgency
+        - authNumber
+
+    AIChatRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [provider, patient, payer]
+        feature:
+          type: string
+        message:
+          type: string
+      required:
+        - role
+        - message
+
+    AIChatResponse:
+      type: object
+      properties:
+        response:
+          type: string
+        feature:
+          type: string
+        timestamp:
+          type: string
+      required:
+        - response
+        - timestamp
