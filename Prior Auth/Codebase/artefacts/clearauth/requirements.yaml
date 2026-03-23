@@ -1,0 +1,19 @@
+packages:
+  "framer-motion": "For page transitions, modal animations, and interactive step trackers"
+  "date-fns": "For formatting submitted dates, due dates, and timelines consistently"
+  "recharts": "For the payer dashboard analytics and processing metrics charts"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility to safely merge Tailwind CSS classes"
+  "react-hook-form": "For robust form state management in PA modals"
+  "@hookform/resolvers": "For integrating Zod validation with react-hook-form"
+  "zod": "For form validation schemas"
+
+images:
+  - path: "artifacts/clearauth/public/images/login-bg.png"
+    description: "Abstract, clean medical technology background in deep blue (#2563EB) and light blue hues with subtle geometric glowing nodes and data lines, conveying trust, security, and modern healthcare."
+    aspect_ratio: "9:16"
+
+notes:
+  - "Using Wouter for routing as requested."
+  - "Importing API hooks from @workspace/api-client-react."
+  - "Role-based authentication is mock-implemented via React Context for immediate demonstration of the 3 portals."
