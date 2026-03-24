@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>GVD Process Map — Global Value Dossier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --bg2: #0f1525;
+  --bg3: #151c30;
+  --card: #111827;
+  --card2: #1a2235;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8eaf0;
+  --text2: #8892a4;
+  --text3: #55607a;
+  --accent: #4f8ef7;
+  --accent2: #7c5cfc;
+  --teal: #2dd4bf;
+  --amber: #f59e0b;
+  --rose: #f43f5e;
+  --green: #22c55e;
+  --purple: #a78bfa;
+  --font-display: 'DM Serif Display', serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* HEADER */
+header {
+  position: relative; z-index: 10;
+  padding: 40px 48px 32px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(79,142,247,0.05) 0%, transparent 100%);
+}
+.header-inner { max-width: 1400px; margin: 0 auto; }
+.header-label {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+  color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.header-label::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+h1 {
+  font-family: var(--font-display); font-size: clamp(28px, 4vw, 46px);
+  font-weight: 400; letter-spacing: -0.02em; line-height: 1.1;
+  color: #fff; margin-bottom: 10px;
+}
+h1 em { font-style: italic; color: var(--accent); }
+.header-sub { font-size: 14px; color: var(--text2); max-width: 600px; line-height: 1.7; }
+.header-meta { display: flex; gap: 16px; margin-top: 20px; flex-wrap: wrap; }
+.meta-pill {
+  font-size: 11px; font-family: var(--font-mono); padding: 4px 12px;
+  border-radius: 20px; border: 1px solid var(--border2); color: var(--text2);
+  background: var(--bg3);
+}
+
+/* TABS */
+.tab-nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(10,14,26,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 48px;
+}
+.tab-nav-inner { max-width: 1400px; margin: 0 auto; display: flex; gap: 0; }
+.tab-btn {
+  padding: 16px 24px; font-size: 13px; font-weight: 500; font-family: var(--font-body);
+  color: var(--text3); cursor: pointer; background: transparent; border: none;
+  border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap;
+}
+.tab-btn:hover { color: var(--text2); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* MAIN CONTENT */
+main { max-width: 1400px; margin: 0 auto; padding: 36px 48px 80px; position: relative; z-index: 1; }
+.exhibit { display: none; }
+.exhibit.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* PHASE SYSTEM */
+.phase-section { margin-bottom: 8px; }
+.phase-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.phase-pill {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 14px;
+  border-radius: 20px; flex-shrink: 0;
+}
+.ph-upstream { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+.ph-interim { background: rgba(79,142,247,0.12); color: var(--accent); border: 1px solid rgba(79,142,247,0.25); }
+.ph-interim2 { background: rgba(124,92,252,0.12); color: var(--purple); border: 1px solid rgba(124,92,252,0.25); }
+.ph-modules { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.25); }
+.ph-review { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+.ph-final { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.35); }
+.phase-line { flex: 1; height: 1px; background: var(--border); }
+
+/* MODULE CARDS */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.mod-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+  cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+}
+.mod-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.mod-card:hover { border-color: var(--border2); background: var(--card2); transform: translateY(-1px); }
+.mod-card:hover::before { opacity: 1; }
+.mod-card.active { border-color: var(--accent); background: var(--card2); }
+.mod-card.active::before { opacity: 1; }
+
+.card-type {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;
+}
+.ct-evidence { background: rgba(34,197,94,0.1); color: var(--green); }
+.ct-clinical { background: rgba(79,142,247,0.1); color: var(--accent); }
+.ct-econ { background: rgba(245,158,11,0.1); color: var(--amber); }
+.ct-reg { background: rgba(244,63,94,0.1); color: var(--rose); }
+.ct-synth { background: rgba(124,92,252,0.1); color: var(--purple); }
+.ct-output { background: rgba(45,212,191,0.1); color: var(--teal); }
+.ct-module { background: rgba(167,139,250,0.1); color: var(--purple); }
+.ct-gov { background: rgba(245,158,11,0.1); color: var(--amber); }
+.ct-adapt { background: rgba(45,212,191,0.1); color: var(--teal); }
+
+.card-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 4px; line-height: 1.3; }
+.card-sub { font-size: 11px; color: var(--text2); line-height: 1.5; margin-bottom: 8px; }
+.card-owner { font-size: 10px; color: var(--text3); padding-top: 8px; border-top: 1px solid var(--border); line-height: 1.4; }
+.card-owner strong { color: var(--text2); }
+
+/* CONNECTOR */
+.connector { display: flex; align-items: center; justify-content: center; height: 32px; gap: 8px; }
+.conn-line { width: 1px; height: 24px; background: linear-gradient(to bottom, var(--border2), var(--accent)); opacity: 0.5; }
+.conn-arrow { color: var(--accent); font-size: 12px; opacity: 0.6; }
+
+/* DETAIL PANEL */
+.detail-panel {
+  margin-top: 16px; background: var(--bg3);
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  overflow: hidden; transition: all 0.3s;
+}
+.detail-panel-inner { padding: 24px; }
+.detail-title { font-family: var(--font-display); font-size: 20px; color: #fff; margin-bottom: 16px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+@media (max-width: 700px) { .detail-grid { grid-template-columns: 1fr; } }
+.detail-col h4 {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text3); margin-bottom: 8px;
+}
+.detail-col ul { list-style: none; }
+.detail-col ul li {
+  font-size: 12px; color: var(--text2); padding: 4px 0 4px 14px;
+  position: relative; border-bottom: 1px solid var(--border); line-height: 1.5;
+}
+.detail-col ul li::before { content: '→'; position: absolute; left: 0; color: var(--accent); font-size: 10px; top: 5px; }
+.detail-teams { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.team-chip {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  background: rgba(79,142,247,0.1); border: 1px solid rgba(79,142,247,0.2);
+  color: var(--accent); font-weight: 500;
+}
+.detail-note {
+  background: rgba(79,142,247,0.05); border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0; padding: 12px 16px;
+  font-size: 12px; color: var(--text2); line-height: 1.7;
+}
+.detail-note strong { color: var(--text); font-weight: 600; }
+.detail-empty { padding: 40px; text-align: center; color: var(--text3); font-size: 13px; }
+
+/* GVD FINAL BOX */
+.gvd-final {
+  margin-top: 8px; background: linear-gradient(135deg, rgba(124,92,252,0.08) 0%, rgba(79,142,247,0.08) 100%);
+  border: 1px solid rgba(124,92,252,0.35); border-radius: var(--radius);
+  padding: 24px; text-align: center; cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.gvd-final::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(124,92,252,0.04) 0%, rgba(79,142,247,0.04) 100%);
+  opacity: 0; transition: opacity 0.2s;
+}
+.gvd-final:hover::before { opacity: 1; }
+.gvd-final:hover { border-color: rgba(124,92,252,0.6); }
+.gvd-final.active { border-color: var(--accent); }
+.gvd-final-title { font-family: var(--font-display); font-size: 22px; color: #fff; margin-bottom: 4px; }
+.gvd-final-sub { font-size: 12px; color: var(--text2); margin-bottom: 14px; }
+.gvd-chapters { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.gvd-ch {
+  font-size: 11px; padding: 4px 12px; border-radius: 20px;
+  background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.2);
+  color: var(--purple);
+}
+
+/* STAKEHOLDER GRID */
+.stkh-section { margin-top: 40px; border-top: 1px solid var(--border); padding-top: 28px; }
+.section-title {
+  font-family: var(--font-display); font-size: 22px; color: #fff;
+  margin-bottom: 6px;
+}
+.section-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+.stkh-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.stkh-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; transition: all 0.2s;
+}
+.stkh-card:hover { border-color: var(--border2); background: var(--card2); }
+.stkh-name { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 2px; }
+.stkh-role {
+  font-size: 9px; font-family: var(--font-mono); font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 8px;
+}
+.stkh-card ul { list-style: none; }
+.stkh-card ul li { font-size: 11px; color: var(--text2); padding: 2px 0 2px 10px; position: relative; }
+.stkh-card ul li::before { content: '·'; position: absolute; left: 0; color: var(--text3); }
+
+/* EXHIBIT B */
+.b-intro { font-size: 14px; color: var(--text2); line-height: 1.8; max-width: 800px; margin-bottom: 28px; }
+.flow-diagram {
+  display: flex; align-items: stretch; gap: 0; margin-bottom: 36px;
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; overflow-x: auto; flex-wrap: nowrap;
+}
+.flow-step {
+  text-align: center; padding: 12px 16px; min-width: 100px; flex: 1;
+  border-right: 1px solid var(--border); position: relative;
+}
+.flow-step:last-child { border-right: none; }
+.flow-step-icon { font-size: 18px; margin-bottom: 4px; }
+.flow-step-name { font-size: 11px; font-weight: 600; color: #fff; margin-bottom: 2px; line-height: 1.3; }
+.flow-step-sub { font-size: 10px; color: var(--text3); }
+.flow-arrow { color: var(--text3); font-size: 14px; align-self: center; padding: 0 2px; flex-shrink: 0; }
+
+.b-section-hdr {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text3); margin: 24px 0 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.b-section-hdr::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.hta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.hta-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; transition: all 0.2s; cursor: pointer;
+}
+.hta-card:hover { border-color: var(--border2); background: var(--card2); transform: translateY(-1px); }
+.hta-name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 2px; letter-spacing: -0.02em; }
+.hta-country { font-size: 11px; color: var(--text3); margin-bottom: 8px; }
+.hta-type {
+  font-size: 9px; font-family: var(--font-mono); font-weight: 500; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 2px 9px; border-radius: 4px; display: inline-block; margin-bottom: 8px;
+}
+.ht-uk { background: rgba(124,92,252,0.12); color: var(--purple); border: 1px solid rgba(124,92,252,0.2); }
+.ht-fr { background: rgba(244,63,94,0.12); color: var(--rose); border: 1px solid rgba(244,63,94,0.2); }
+.ht-de { background: rgba(34,197,94,0.12); color: var(--green); border: 1px solid rgba(34,197,94,0.2); }
+.ht-eu { background: rgba(79,142,247,0.12); color: var(--accent); border: 1px solid rgba(79,142,247,0.2); }
+.ht-us { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+.ht-payer { background: rgba(45,212,191,0.12); color: var(--teal); border: 1px solid rgba(45,212,191,0.2); }
+.ht-intl { background: rgba(167,139,250,0.12); color: var(--purple); border: 1px solid rgba(167,139,250,0.2); }
+.hta-detail { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 8px; }
+.hta-focus { font-size: 10px; color: var(--text3); padding-top: 8px; border-top: 1px solid var(--border); line-height: 1.5; }
+.hta-focus strong { color: var(--accent); font-weight: 500; }
+
+/* PAYER INSIGHT BOX */
+.insight-box {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 20px; margin-top: 24px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;
+}
+.insight-item { padding: 10px; border-radius: 8px; background: rgba(79,142,247,0.04); border: 1px solid var(--border); }
+.insight-arrow { color: var(--accent); font-size: 10px; font-family: var(--font-mono); margin-bottom: 4px; }
+.insight-text { font-size: 11px; color: var(--text2); line-height: 1.5; }
+
+/* SCROLL TOP */
+.scroll-top {
+  position: fixed; bottom: 32px; right: 32px; z-index: 100;
+  width: 40px; height: 40px; background: var(--accent); border: none;
+  border-radius: 50%; cursor: pointer; color: #fff; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(79,142,247,0.4); transition: all 0.2s;
+  opacity: 0; pointer-events: none;
+}
+.scroll-top.visible { opacity: 1; pointer-events: all; }
+.scroll-top:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(79,142,247,0.5); }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border); padding: 24px 48px;
+  text-align: center; color: var(--text3); font-size: 11px;
+  font-family: var(--font-mono); letter-spacing: 0.05em;
+  position: relative; z-index: 1;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  header, .tab-nav, main, footer { padding-left: 20px; padding-right: 20px; }
+  .cards-grid { grid-template-columns: 1fr 1fr; }
+  .flow-diagram { padding: 12px; }
+}
+@media (max-width: 500px) {
+  .cards-grid { grid-template-columns: 1fr; }
+}
+
+/* ACCENT COLOR PER CARD TYPE */
+.mod-card[data-color="green"]::before { background: var(--green); }
+.mod-card[data-color="blue"]::before { background: var(--accent); }
+.mod-card[data-color="amber"]::before { background: var(--amber); }
+.mod-card[data-color="rose"]::before { background: var(--rose); }
+.mod-card[data-color="purple"]::before { background: var(--purple); }
+.mod-card[data-color="teal"]::before { background: var(--teal); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-label">Pharma Commercial · Market Access · Regulatory</div>
+    <h1>Global Value Dossier<br/><em>Process Architecture</em></h1>
+    <p class="header-sub">End-to-end map of GVD creation — upstream data sources, evidence modules, teams, HTA strategy, and global payer landscape.</p>
+    <div class="header-meta">
+      <span class="meta-pill">SLR → TLR → CTD → NMA → HEMODEL → GVD</span>
+      <span class="meta-pill">12 Stakeholder Roles</span>
+      <span class="meta-pill">15+ HTA Bodies</span>
+      <span class="meta-pill">Interactive · Click Modules</span>
+    </div>
+  </div>
+</header>
+
+<nav class="tab-nav">
+  <div class="tab-nav-inner">
+    <button class="tab-btn active" onclick="showTab('a')">Exhibit A — GVD Process Map</button>
+    <button class="tab-btn" onclick="showTab('b')">Exhibit B — HTA Bodies & Payers</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- EXHIBIT A -->
+<div id="tab-a" class="exhibit active">
+
+  <div style="margin-bottom:24px; font-size:13px; color:var(--text2);">
+    ↓ Click any module to expand inputs, outputs, data sources, and responsible teams.
+  </div>
+
+  <!-- PHASE 1: UPSTREAM -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-pill ph-upstream">Phase 1 — Upstream Evidence Foundation</span>
+      <div class="phase-line"></div>
+    </div>
+    <div class="cards-grid">
+      <div class="mod-card" data-color="green" onclick="showDetail(this,'slr')">
+        <span class="card-type ct-evidence">Evidence Synthesis</span>
+        <div class="card-title">SLR — Systematic Literature Review</div>
+        <div class="card-sub">Comprehensive PRISMA-compliant search of all published evidence on efficacy, safety, QoL, epidemiology, and treatment comparators</div>
+        <div class="card-owner"><strong>Lead:</strong> HEOR / Evidence Synthesis · <strong>Support:</strong> Medical Librarians, CRO</div>
+      </div>
+      <div class="mod-card" data-color="green" onclick="showDetail(this,'tlr')">
+        <span class="card-type ct-evidence">Evidence Synthesis</span>
+        <div class="card-title">TLR — Targeted Literature Review</div>
+        <div class="card-sub">Focused review on burden of disease, epidemiology, unmet need, and cost-of-illness. Faster, question-driven approach</div>
+        <div class="card-owner"><strong>Lead:</strong> Medical Affairs / HEOR · <strong>Support:</strong> Clinical Research</div>
+      </div>
+      <div class="mod-card" data-color="blue" onclick="showDetail(this,'ctd')">
+        <span class="card-type ct-clinical">Clinical Data</span>
+        <div class="card-title">CTD — Clinical Trial Data</div>
+        <div class="card-sub">Phase I–III RCTs, CSRs, long-term follow-up, OLE studies, subgroup analyses, and patient-level IPD</div>
+        <div class="card-owner"><strong>Lead:</strong> Clinical Development · Biostatistics · Regulatory Affairs</div>
+      </div>
+      <div class="mod-card" data-color="green" onclick="showDetail(this,'epi')">
+        <span class="card-type ct-evidence">Epidemiology</span>
+        <div class="card-title">Epidemiology & Burden of Disease</div>
+        <div class="card-sub">Incidence, prevalence, DALYs, disease burden, unmet medical need — segmented by geography, line of therapy, subgroup</div>
+        <div class="card-owner"><strong>Lead:</strong> HEOR Epidemiologist · <strong>Support:</strong> Medical Affairs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"><div class="conn-line"></div></div>
+
+  <!-- PHASE 2: EVIDENCE GENERATION -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-pill ph-interim">Phase 2 — Evidence Generation & Transformation</span>
+      <div class="phase-line"></div>
+    </div>
+    <div class="cards-grid">
+      <div class="mod-card" data-color="blue" onclick="showDetail(this,'nma')">
+        <span class="card-type ct-evidence">Indirect Comparison</span>
+        <div class="card-title">NMA / ITC</div>
+        <div class="card-sub">Network Meta-Analysis & Indirect Treatment Comparisons positioning the drug vs standard of care and all relevant comparators</div>
+        <div class="card-owner"><strong>Lead:</strong> Biostatistics / HEOR · <strong>Validate:</strong> HTA Specialists</div>
+      </div>
+      <div class="mod-card" data-color="blue" onclick="showDetail(this,'pro')">
+        <span class="card-type ct-clinical">Patient Evidence</span>
+        <div class="card-title">PRO / QoL Data</div>
+        <div class="card-sub">Patient-Reported Outcomes, HRQoL instruments (EQ-5D, SF-36, FACT), mapping studies for utility values essential for QALY calculation</div>
+        <div class="card-owner"><strong>Lead:</strong> PRO Specialists / HEOR · <strong>Support:</strong> Clinical</div>
+      </div>
+      <div class="mod-card" data-color="teal" onclick="showDetail(this,'rwe')">
+        <span class="card-type ct-evidence">Real-World</span>
+        <div class="card-title">RWE / RWD Studies</div>
+        <div class="card-sub">Registries, claims databases, EHR data, observational studies supplementing trial evidence for HTA and outcomes-based contracts</div>
+        <div class="card-owner"><strong>Lead:</strong> HEOR / Medical Affairs · <strong>Support:</strong> Epidemiology</div>
+      </div>
+      <div class="mod-card" data-color="rose" onclick="showDetail(this,'reg')">
+        <span class="card-type ct-reg">Regulatory</span>
+        <div class="card-title">Regulatory Package Review</div>
+        <div class="card-sub">SmPC/USPI label review, EPAR/FDA approval documents, CSRs — ensuring all GVD claims align with approved indication</div>
+        <div class="card-owner"><strong>Lead:</strong> Regulatory Affairs · <strong>Cross-check:</strong> Medical Affairs</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"><div class="conn-line"></div></div>
+
+  <!-- PHASE 3: HTA & ECONOMIC -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-pill ph-interim2">Phase 3 — HTA Strategy & Health Economic Modelling</span>
+      <div class="phase-line"></div>
+    </div>
+    <div class="cards-grid">
+      <div class="mod-card" data-color="amber" onclick="showDetail(this,'hemodel')">
+        <span class="card-type ct-econ">Health Economics</span>
+        <div class="card-title">Health Economic Model</div>
+        <div class="card-sub">CEA, CUA, BIM — decision-analytic models (Markov, partitioned survival) generating ICER, cost per QALY, and budget impact outputs</div>
+        <div class="card-owner"><strong>Lead:</strong> Health Economists · <strong>Validate:</strong> HTA Specialists, Biostatistics</div>
+      </div>
+      <div class="mod-card" data-color="purple" onclick="showDetail(this,'hta_strat')">
+        <span class="card-type ct-synth">HTA Strategy</span>
+        <div class="card-title">HTA Dossier Strategy</div>
+        <div class="card-sub">Country-specific HTA requirements mapping (NICE, HAS, IQWiG…), PICOS definition, evidence gap analysis, Early Scientific Advice</div>
+        <div class="card-owner"><strong>Lead:</strong> HTA Specialists / Market Access · Legal / Pricing</div>
+      </div>
+      <div class="mod-card" data-color="purple" onclick="showDetail(this,'vf')">
+        <span class="card-type ct-synth">Value Framework</span>
+        <div class="card-title">Value Framework & Value Story</div>
+        <div class="card-sub">Clinical, humanistic, and economic value domains; payer messaging hierarchy; unmet need narrative and positioning vs standard of care</div>
+        <div class="card-owner"><strong>Lead:</strong> Market Access · Medical Affairs · HEOR</div>
+      </div>
+      <div class="mod-card" data-color="amber" onclick="showDetail(this,'pricing')">
+        <span class="card-type ct-econ">Pricing & Access</span>
+        <div class="card-title">Pricing & Market Access Strategy</div>
+        <div class="card-sub">Price benchmarking, IRP linkages, WTP thresholds by country, analogue analysis, launch sequencing, access risk matrix</div>
+        <div class="card-owner"><strong>Lead:</strong> Market Access / Pricing · HTA Specialists</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"><div class="conn-line"></div></div>
+
+  <!-- PHASE 4: GVD MODULES -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-pill ph-modules">Phase 4 — GVD Module Assembly & Drafting</span>
+      <div class="phase-line"></div>
+    </div>
+    <div class="cards-grid">
+      <div class="mod-card" data-color="blue" onclick="showDetail(this,'dis_mod')">
+        <span class="card-type ct-module">GVD Module 1</span>
+        <div class="card-title">Disease Background</div>
+        <div class="card-sub">Pathophysiology, epidemiology, treatment landscape, unmet need narrative — anchors the clinical context for payers and HTA bodies</div>
+        <div class="card-owner"><strong>Lead:</strong> Medical Affairs · HEOR · Medical Writers</div>
+      </div>
+      <div class="mod-card" data-color="blue" onclick="showDetail(this,'clin_mod')">
+        <span class="card-type ct-module">GVD Module 2</span>
+        <div class="card-title">Clinical Evidence</div>
+        <div class="card-sub">Efficacy & safety synthesis, NMA results, subgroup analyses, long-term data, PRO/QoL — the largest, most scrutinised chapter</div>
+        <div class="card-owner"><strong>Lead:</strong> Clinical Dev · Biostatistics · Med Affairs</div>
+      </div>
+      <div class="mod-card" data-color="amber" onclick="showDetail(this,'econ_mod')">
+        <span class="card-type ct-module">GVD Module 3</span>
+        <div class="card-title">Economic Value</div>
+        <div class="card-sub">ICERs, cost per QALY, BIM, productivity loss, caregiver burden — adapted per country with local cost inputs and HTA body format</div>
+        <div class="card-owner"><strong>Lead:</strong> HEOR · Health Economists</div>
+      </div>
+      <div class="mod-card" data-color="teal" onclick="showDetail(this,'ref_mod')">
+        <span class="card-type ct-module">GVD Module 4</span>
+        <div class="card-title">References & Evidence Base</div>
+        <div class="card-sub">Full GRADE-rated bibliography, SLR evidence tables, appendices, study quality assessments, data extraction forms</div>
+        <div class="card-owner"><strong>Lead:</strong> HEOR · Medical Information · Medical Writers</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"><div class="conn-line"></div></div>
+
+  <!-- PHASE 5: REVIEW -->
+  <div class="phase-section">
+    <div class="phase-header">
+      <span class="phase-pill ph-review">Phase 5 — Review, Governance & Country Adaptation</span>
+      <div class="phase-line"></div>
+    </div>
+    <div class="cards-grid">
+      <div class="mod-card" data-color="amber" onclick="showDetail(this,'mlr')">
+        <span class="card-type ct-gov">MLR Governance</span>
+        <div class="card-title">Medical-Legal-Regulatory (MLR) Review</div>
+        <div class="card-sub">Multi-cycle review of all claims for accuracy, label compliance, and legal defensibility. Mandatory gate before any GVD is finalised or submitted</div>
+        <div class="card-owner"><strong>Lead:</strong> Regulatory Affairs · Legal · Medical · Compliance</div>
+      </div>
+      <div class="mod-card" data-color="green" onclick="showDetail(this,'ext_review')">
+        <span class="card-type ct-evidence">Scientific Validation</span>
+        <div class="card-title">External Scientific Review</div>
+        <div class="card-sub">KOL & advisory board review, HTA expert validation, country medical team sign-off for local scientific credibility</div>
+        <div class="card-owner"><strong>Lead:</strong> Medical Affairs · Market Access · Country Teams</div>
+      </div>
+      <div class="mod-card" data-color="teal" onclick="showDetail(this,'localize')">
+        <span class="card-type ct-adapt">Localisation</span>
+        <div class="card-title">Country / Payer Adaptation</div>
+        <div class="card-sub">Local epidemiology, country-specific HTA dossiers (NICE STA, HAS dossier, IQWiG), language localisation, payer value dossier</div>
+        <div class="card-owner"><strong>Lead:</strong> Local Market Access · HTA Teams · Country Medical</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector"><div class="conn-line"></div></div>
+
+  <!-- FINAL GVD -->
+  <div class="gvd-final" id="gvd-final-box" onclick="showDetail(this,'gvd_final')">
+    <div class="gvd-final-title">Global Value Dossier (GVD) — Final</div>
+    <div class="gvd-final-sub">Owner: Global Market Access Director / Head of HEOR · Approved by: Medical, Regulatory, Legal</div>
+    <div class="gvd-chapters">
+      <span class="gvd-ch">Executive Summary</span>
+      <span class="gvd-ch">Disease Background</span>
+      <span class="gvd-ch">Clinical Evidence</span>
+      <span class="gvd-ch">PRO / QoL</span>
+      <span class="gvd-ch">Economic Value</span>
+      <span class="gvd-ch">HTA Submissions</span>
+      <span class="gvd-ch">Budget Impact</span>
+      <span class="gvd-ch">References</span>
+    </div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-empty">← Select any module above to view full details</div>
+  </div>
+
+  <!-- STAKEHOLDER PROFILES -->
+  <div class="stkh-section">
+    <div class="section-title">Stakeholder Profiles</div>
+    <div class="section-sub">Roles, responsibilities, and contributions across the GVD lifecycle</div>
+    <div class="stkh-grid">
+      <div class="stkh-card">
+        <div class="stkh-name">Head of Global Market Access</div>
+        <span class="stkh-role" style="background:rgba(45,212,191,0.1);color:var(--teal);">GVD Owner</span>
+        <ul>
+          <li>Overall GVD strategy & ownership</li>
+          <li>Payer engagement & pricing strategy</li>
+          <li>Cross-functional alignment</li>
+          <li>Final sign-off on value story</li>
+          <li>Country submission coordination</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">HTA Specialist / Director</div>
+        <span class="stkh-role" style="background:rgba(124,92,252,0.1);color:var(--purple);">HTA Lead</span>
+        <ul>
+          <li>NICE, HAS, IQWiG, AIFA strategy</li>
+          <li>Dossier structure per HTA body</li>
+          <li>Comparator & PICOS definition</li>
+          <li>Validates NMA methodology</li>
+          <li>HTA agency interactions & ESA</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">HEOR Director / Manager</div>
+        <span class="stkh-role" style="background:rgba(245,158,11,0.1);color:var(--amber);">HEOR Lead</span>
+        <ul>
+          <li>Leads SLR, TLR, evidence synthesis</li>
+          <li>Health economic model development</li>
+          <li>Budget impact model (BIM)</li>
+          <li>RWE study design & oversight</li>
+          <li>PRO / utility data management</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Biostatistician</div>
+        <span class="stkh-role" style="background:rgba(245,158,11,0.1);color:var(--amber);">Statistics</span>
+        <ul>
+          <li>Clinical trial statistical analyses</li>
+          <li>NMA / ITC statistical methods</li>
+          <li>Survival analysis & extrapolation</li>
+          <li>Subgroup & sensitivity analyses</li>
+          <li>SAP development and execution</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Medical Affairs Lead</div>
+        <span class="stkh-role" style="background:rgba(79,142,247,0.1);color:var(--accent);">Medical</span>
+        <ul>
+          <li>Clinical claims accuracy review</li>
+          <li>KOL / advisory board engagement</li>
+          <li>Disease background authorship</li>
+          <li>Medical information sign-off</li>
+          <li>Publication strategy alignment</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Regulatory Affairs</div>
+        <span class="stkh-role" style="background:rgba(244,63,94,0.1);color:var(--rose);">Regulatory</span>
+        <ul>
+          <li>Label / SmPC compliance review</li>
+          <li>MLR process governance</li>
+          <li>Approved indication enforcement</li>
+          <li>Submission package alignment</li>
+          <li>Benefit-risk framing</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Health Economist</div>
+        <span class="stkh-role" style="background:rgba(245,158,11,0.1);color:var(--amber);">HEOR / Econ</span>
+        <ul>
+          <li>CE / CUA model architecture</li>
+          <li>Markov / partitioned survival models</li>
+          <li>DSA, PSA, scenario analyses</li>
+          <li>WTP threshold analysis by country</li>
+          <li>Local model adaptation</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Medical Writer</div>
+        <span class="stkh-role" style="background:rgba(88,101,116,0.2);color:var(--text2);">Content</span>
+        <ul>
+          <li>GVD chapter drafting & editing</li>
+          <li>SLR / TLR report writing</li>
+          <li>Evidence tables & appendices</li>
+          <li>Review cycle management</li>
+          <li>Dossier formatting & QC</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Clinical Development Lead</div>
+        <span class="stkh-role" style="background:rgba(79,142,247,0.1);color:var(--accent);">Clinical</span>
+        <ul>
+          <li>Phase I–III trial data provision</li>
+          <li>Clinical Study Reports (CSRs)</li>
+          <li>Long-term extension / OLE data</li>
+          <li>Subgroup analysis justification</li>
+          <li>Endpoint selection rationale</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">PRO Specialist / Psychometrician</div>
+        <span class="stkh-role" style="background:rgba(79,142,247,0.1);color:var(--accent);">PRO / QoL</span>
+        <ul>
+          <li>PRO instrument selection & validation</li>
+          <li>EQ-5D implementation oversight</li>
+          <li>Utility mapping studies</li>
+          <li>COA regulatory strategy</li>
+          <li>HEOR PRO analysis</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Legal / Compliance</div>
+        <span class="stkh-role" style="background:rgba(88,101,116,0.2);color:var(--text2);">Legal</span>
+        <ul>
+          <li>MLR — legal defensibility review</li>
+          <li>Off-label promotion compliance</li>
+          <li>Pricing & contract legal review</li>
+          <li>Risk management sign-off</li>
+        </ul>
+      </div>
+      <div class="stkh-card">
+        <div class="stkh-name">Project / Program Manager</div>
+        <span class="stkh-role" style="background:rgba(88,101,116,0.2);color:var(--text2);">PMO</span>
+        <ul>
+          <li>GVD timeline & milestone tracking</li>
+          <li>Cross-functional workstream mgmt</li>
+          <li>Review cycle coordination</li>
+          <li>Version control & document mgmt</li>
+          <li>Launch readiness coordination</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- END EXHIBIT A -->
+
+<!-- EXHIBIT B -->
+<div id="tab-b" class="exhibit">
+
+  <p class="b-intro">
+    The GVD is the primary evidence package submitted to HTA bodies and payers globally. Each body operates under a distinct assessment framework, submission format, and decision-making process. Below maps the full payer journey and all key recipient organisations.
+  </p>
+
+  <div class="b-section-hdr">GVD → Reimbursement Flow</div>
+  <div class="flow-diagram">
+    <div class="flow-step">
+      <div class="flow-step-icon">📄</div>
+      <div class="flow-step-name">GVD (Global)</div>
+      <div class="flow-step-sub">Core dossier</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-icon">🌍</div>
+      <div class="flow-step-name">Localisation</div>
+      <div class="flow-step-sub">Country adaptation</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-icon">📬</div>
+      <div class="flow-step-name">HTA Submission</div>
+      <div class="flow-step-sub">Dossier / eCTD</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-icon">🔬</div>
+      <div class="flow-step-name">Assessment</div>
+      <div class="flow-step-sub">HTA body review</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-icon">✅</div>
+      <div class="flow-step-name">Recommendation</div>
+      <div class="flow-step-sub">Coverage / QALY</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-icon">💰</div>
+      <div class="flow-step-name">Price Negotiation</div>
+      <div class="flow-step-sub">Payer decision</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-step-icon">🏥</div>
+      <div class="flow-step-name">Reimbursement</div>
+      <div class="flow-step-sub">Market access</div>
+    </div>
+  </div>
+
+  <div class="b-section-hdr">Europe — HTA Bodies</div>
+  <div class="hta-grid">
+    <div class="hta-card">
+      <div class="hta-name">NICE</div>
+      <div class="hta-country">UK — National Institute for Health and Care Excellence</div>
+      <span class="hta-type ht-uk">Technology Appraisal</span>
+      <div class="hta-detail">Cost-utility analysis (CUA) framework. ICER threshold ~£20,000–£30,000/QALY (up to £50,000 for end-of-life). Requires STA/MTA dossier with economic model, NMA, EQ-5D utilities. Highly structured submission process with clear guidance on preferred methods.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical evidence · Economic model · NMA · PRO/QoL (EQ-5D) · BIM</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">HAS</div>
+      <div class="hta-country">France — Haute Autorité de Santé</div>
+      <span class="hta-type ht-fr">Clinical Benefit Assessment</span>
+      <div class="hta-detail">Two-stage process: SMR (clinical benefit rating) then ASMR (added value vs comparator, scale I–V). Does not require cost-effectiveness for initial review. Price negotiated with CEPS post-ASMR. ASMR I–III drives premium pricing; ASMR IV/V limits it.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical evidence · Comparator analysis · Disease background</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">IQWiG / G-BA</div>
+      <div class="hta-country">Germany — AMNOG Process</div>
+      <span class="hta-type ht-de">Benefit Assessment</span>
+      <div class="hta-detail">AMNOG: G-BA defines appropriate comparator (zweckmäßige Komparator). IQWiG assesses additional benefit (major/considerable/minor/non-quantifiable). Direct head-to-head preferred; NMA accepted with justification. Price negotiated with GKV-Spitzenverband. No formal QALY threshold.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical evidence · NMA (with caveats) · Safety · PRO</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">EMA / EUnetHTA (JCA)</div>
+      <div class="hta-country">EU — Joint Clinical Assessment (EU HTA Regulation 2022/282)</div>
+      <span class="hta-type ht-eu">Joint HTA</span>
+      <div class="hta-detail">Mandatory Joint Clinical Assessment (JCA) for oncology and ATMPs from 2025. Single centralised evidence package submitted across all EU member states. National HTA bodies conduct economic assessment locally post-JCA. Requires EUnetHTA Core HTA format.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> All clinical modules · NMA · PICOS · Comparators</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">AIFA</div>
+      <div class="hta-country">Italy — Agenzia Italiana del Farmaco</div>
+      <span class="hta-type ht-eu">Value-Based Pricing</span>
+      <div class="hta-detail">Classifies drugs by therapeutic importance (Class A = fully reimbursed). Negotiates price-volume agreements, managed entry agreements (MEAs), risk-sharing, and outcome-based contracts. Clinical value + budget impact are central to price negotiation.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical · Economic · Budget impact · RWE</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">TLV</div>
+      <div class="hta-country">Sweden — Dental and Pharmaceutical Benefits Agency</div>
+      <span class="hta-type ht-eu">CEA Assessment</span>
+      <div class="hta-detail">Formal cost-effectiveness analysis required. Applies proportionality principle — higher ICER acceptable for severe diseases. NT-Council process for hospital medicines. Transparent ICER assessment with severity-tiered thresholds. Often referenced as a model CEA system.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> All modules including full economic model</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">ZIN (Zorginstituut Nederland)</div>
+      <div class="hta-country">Netherlands — Package Assessment</div>
+      <span class="hta-type ht-eu">Conditional Reimbursement</span>
+      <div class="hta-detail">Assesses necessary care (pakketbeheer). CEA threshold ~€80,000/QALY for severe disease. Conditional reimbursement (Voorwaardelijke Toelating) possible pending RWE collection. Lock-in reassessment after 4 years based on outcomes data.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical · Economic · RWE study design · BIM</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">AEM / GENESIS</div>
+      <div class="hta-country">Spain — Ministry of Health / CIPM</div>
+      <span class="hta-type ht-eu">Efficiency Report</span>
+      <div class="hta-detail">GENESIS report (hospital pharmacists network) assesses therapeutic value. CIPM (Interministerial Pricing Commission) sets national price. Autonomous communities (CCAA) may apply additional access restrictions. CEA/CUA required for premium pricing.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical · Economic model · BIM · Comparator analysis</div>
+    </div>
+  </div>
+
+  <div class="b-section-hdr" style="margin-top:28px;">North America — Payers & Assessment Bodies</div>
+  <div class="hta-grid">
+    <div class="hta-card">
+      <div class="hta-name">ICER</div>
+      <div class="hta-country">USA — Institute for Clinical and Economic Review</div>
+      <span class="hta-type ht-us">Independent Assessment</span>
+      <div class="hta-detail">Non-binding but highly influential. Publishes value-based price benchmarks ($100K–$150K/QALY threshold range). Used by PBMs, self-insured employers, and payers in contract negotiations. Rare disease programs use modified QALY or equal-value-of-life-years (evLYG) frameworks.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical · Economic model · NMA · BIM</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">CMS / Medicare</div>
+      <div class="hta-country">USA — Centers for Medicare & Medicaid Services</div>
+      <span class="hta-type ht-us">Coverage & Reimbursement</span>
+      <div class="hta-detail">NCDs and LCDs govern coverage. IRA (Inflation Reduction Act) enables Medicare price negotiation for high-spend drugs. Part B vs Part D designation is commercially critical. No formal QALY threshold; clinical effectiveness and budget impact are key levers.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical evidence · Safety · RWE · BIM</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">PBMs (CVS, Express Scripts, OptumRx)</div>
+      <div class="hta-country">USA — Pharmacy Benefit Managers</div>
+      <span class="hta-type ht-payer">Payer / Formulary</span>
+      <div class="hta-detail">Control formulary placement (Tier 1–4), prior authorisation criteria, and step therapy requirements for ~270M lives combined. Clinical value + net price (rebates) drive formulary decisions. P&T Committee reviews GVD clinical and comparative evidence.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical value narrative · Comparator data · Safety · BIM</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">CADTH / CDR + pCODR</div>
+      <div class="hta-country">Canada — Canadian Drug Review</div>
+      <span class="hta-type ht-us">Reimbursement Recommendation</span>
+      <div class="hta-detail">CDR (Common Drug Review) for non-oncology; pCODR for oncology. Recommendations to provinces for formulary listing. Full pharmacoeconomic submission (CEA) required alongside clinical dossier. PMPRB sets ceiling price. Provincial variations in access post-recommendation.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> All modules · Pharmacoeconomic submission</div>
+    </div>
+  </div>
+
+  <div class="b-section-hdr" style="margin-top:28px;">Asia-Pacific & Emerging Markets</div>
+  <div class="hta-grid">
+    <div class="hta-card">
+      <div class="hta-name">PBAC</div>
+      <div class="hta-country">Australia — Pharmaceutical Benefits Advisory Committee</div>
+      <span class="hta-type ht-intl">PBS Listing</span>
+      <div class="hta-detail">Recommends PBS listing based on clinical and cost-effectiveness. Formal CEA/CUA required; threshold not publicly stated but ~AUD 45,000–75,000/QALY. Risk-sharing agreements (RSAs) common for uncertainty. NMA required when no direct head-to-head vs comparator.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> All modules in PBAC submission format</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">NECA / HiRAS</div>
+      <div class="hta-country">South Korea — National Evidence-based Healthcare Collaborating Agency</div>
+      <span class="hta-type ht-intl">NHI HTA</span>
+      <div class="hta-detail">Mandatory HTA for NHI reimbursement listing. Full economic evaluation required. RSAs used for uncertainty. Korea-specific epidemiology and clinical practice data required — bridging studies may be needed to supplement global trial data.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical · Economic · Local epidemiology</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">NHSA / CDE</div>
+      <div class="hta-country">China — National Healthcare Security Administration</div>
+      <span class="hta-type ht-intl">NRDL Negotiation</span>
+      <div class="hta-detail">Annual NRDL (National Reimbursement Drug List) negotiation cycle. Pharmacoeconomic evaluation required. Price reductions of 50–70% are common at negotiation. China-specific clinical data increasingly required; bridging studies often needed for locally relevant evidence.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Adapted clinical · Local RWE · Localised economic model</div>
+    </div>
+    <div class="hta-card">
+      <div class="hta-name">HTAi / EUnetHTA / WHO</div>
+      <div class="hta-country">Global — International HTA Network</div>
+      <span class="hta-type ht-intl">Global Reference</span>
+      <div class="hta-detail">HTAi facilitates knowledge-sharing across 50+ HTA bodies. NICE International advises LMICs. WHO EML listing uses clinical evidence packages. GVD serves as the master source document from which all country-level adaptations and submissions are derived.</div>
+      <div class="hta-focus"><strong>GVD modules used:</strong> Clinical evidence core · Burden of disease · Safety</div>
+    </div>
+  </div>
+
+  <div class="b-section-hdr" style="margin-top:28px;">GVD Module → Payer Touchpoint Map</div>
+  <div class="insight-box">
+    <div class="insight-item">
+      <div class="insight-arrow">SLR / NMA →</div>
+      <div class="insight-text">Comparative effectiveness for P&T Committee formulary review at PBMs and HTA bodies</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-arrow">Economic Model →</div>
+      <div class="insight-text">ICER, cost per QALY — assessed against WTP threshold by NICE, TLV, PBAC, ZIN, CADTH</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-arrow">PRO / QoL (EQ-5D) →</div>
+      <div class="insight-text">QALY calculation for cost-utility analysis. Mandatory for NICE; increasingly required across EU HTA bodies</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-arrow">Budget Impact Model →</div>
+      <div class="insight-text">Payer affordability & fiscal planning. Critical for MEA, outcomes-based contracts, and NRDL negotiations</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-arrow">RWE Studies →</div>
+      <div class="insight-text">Supports conditional reimbursement (ZIN), MEA triggers (AIFA), and post-launch reassessments (HTAi)</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-arrow">Value Story →</div>
+      <div class="insight-text">Payer-facing value dossier (abbreviated GVD) used in formulary negotiations, advisory boards, and KAM meetings</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-arrow">Clinical Safety Data →</div>
+      <div class="insight-text">Risk-benefit framing by all HTA bodies; critical for MEA design and managed entry risk-sharing agreements</div>
+    </div>
+    <div class="insight-item">
+      <div class="insight-arrow">Disease Background →</div>
+      <div class="insight-text">Unmet need narrative anchors AMSR scoring (HAS), severity tier (TLV), EOL criteria (NICE), ASMR classification</div>
+    </div>
+  </div>
+
+</div>
+<!-- END EXHIBIT B -->
+
+</main>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<footer>
+  GVD Process Architecture · Pharma Commercial & Market Access · Interactive Reference Map
+</footer>
+
+<script>
+const details = {
+  slr: {
+    title: 'SLR — Systematic Literature Review',
+    inputs: ['PubMed, Embase, CENTRAL, Cochrane — primary databases','PROSPERO registration for protocol transparency','PICOS framework (Population, Intervention, Comparator, Outcome, Study design)','Grey literature: conference abstracts, HTA body submissions, FDA advisory documents','PRISMA 2020 reporting guidelines'],
+    outputs: ['Structured evidence tables (efficacy, safety, QoL by study)','Comparative effectiveness dataset for NMA','Evidence gap analysis identifying HTA submission risks','Data extraction forms and inter-rater reliability assessment','SLR technical report + PRISMA flowchart'],
+    teams: ['HEOR / Evidence Synthesis Lead','Medical Information Specialists / Librarians','Medical Writers (report authorship)','HTA Specialists (PICOS validation)','External CRO or Evidence Synthesis agency (often outsourced)'],
+    note: '<strong>Critical insight:</strong> The PICOS framework must be jointly defined by HTA Specialists and HEOR before the SLR begins. If PICOS is misaligned with what NICE or IQWiG consider the appropriate comparator, the entire NMA may need to be re-run — a costly and time-consuming error. Early HTA Scientific Advice (ESA) prior to Phase III should inform PICOS design.'
+  },
+  tlr: {
+    title: 'TLR — Targeted Literature Review',
+    inputs: ['Global Burden of Disease (GBD) study data','WHO disease surveillance and registry data','Health economic and cost-of-illness published studies','Qualitative patient burden studies & patient association reports','National registry and epidemiology databases'],
+    outputs: ['Burden of disease narrative with quantified impact (DALYs, QALYs lost)','Unmet need documentation supporting value proposition','Cost-of-illness estimates by country for BIM input','Treatment landscape map (current standard of care)','Disease background chapter draft for GVD Module 1'],
+    teams: ['HEOR Manager / Analyst','Medical Affairs (clinical context)','Medical Writers (chapter authorship)','Epidemiology consultants (as needed)'],
+    note: '<strong>Key role:</strong> The TLR directly feeds the unmet need narrative — arguably the most important foundation of the value story. If unmet need is poorly evidenced, payers and HTA bodies will discount the value proposition regardless of clinical efficacy. The TLR must establish both clinical and humanistic burden.'
+  },
+  ctd: {
+    title: 'CTD — Clinical Trial Data Package',
+    inputs: ['Phase I, II, III Randomised Controlled Trial datasets','Clinical Study Reports (CSRs) — full and abbreviated','IDMC / DMC safety monitoring reports','Individual Patient Data (IPD) for advanced subgroup analyses','Statistical Analysis Plans (SAPs) and protocol amendments','Long-term extension / OLE (Open Label Extension) study data'],
+    outputs: ['Primary efficacy endpoints: OS, PFS, ORR, DFS, EFS as applicable','Safety & tolerability summaries (AE, SAE, discontinuations)','Subgroup analysis results by biomarker, line of therapy, demographics','Survival curves and extrapolation model inputs for economic modelling','PRO/QoL data collected in trials (EQ-5D, disease-specific instruments)','Comparative data tables for HTA submissions'],
+    teams: ['Clinical Development Director / VP','Lead Biostatistician (SAP execution)','Data Management & Clinical Operations','Regulatory Affairs (CSR sign-off & label alignment)','Clinical Project Manager'],
+    note: '<strong>Regulatory alignment:</strong> Biostatisticians produce SAP-driven outputs that feed directly into the NMA and economic model. Regulatory Affairs must ensure all GVD efficacy claims are traceable to the approved label. Any efficacy data outside the approved indication triggers MLR escalation and potential off-label compliance risk.'
+  },
+  epi: {
+    title: 'Epidemiology & Burden of Disease',
+    inputs: ['Global Burden of Disease (GBD) 2019/2021 data — WHO, IHME','National disease registries & cancer registries (SEER, EUROCARE)','Health claims databases (CPRD, IBM MarketScan, Optum)','Published incidence/prevalence cohort studies','Patient association and advocacy group data','Market research epidemiology models'],
+    outputs: ['Prevalence & incidence by country, geography, and line of therapy','Disease burden quantified in DALYs, QALYs lost, productivity loss','Treatment pathway maps (diagnosed → treated → line transitions)','Target patient population sizing for all GVD markets','Population inputs for budget impact model (BIM)'],
+    teams: ['HEOR Epidemiologist / Analyst','Medical Affairs (clinical validation)','Market Research (primary market data)','Health Economists (population model inputs)'],
+    note: '<strong>Commercial and HTA relevance:</strong> Epidemiology data performs a dual role — it grounds the unmet need narrative and sizes the patient population for payer budget impact calculations. Payers (especially in the UK and Netherlands) scrutinise population sizing carefully. Overstated prevalence directly inflates budget impact and can trigger more restrictive coverage decisions.'
+  },
+  nma: {
+    title: 'NMA / ITC — Network Meta-Analysis / Indirect Treatment Comparison',
+    inputs: ['SLR evidence tables: RCT effect sizes (HR, OR, RR, MD, RD)','Network topology / feasibility assessment (homogeneity, similarity, consistency)','HTA methodology guidance: NICE DSU TSD series, CADTH guidelines','Bayesian or frequentist statistical analysis plan (endorsed by HTA)','Individual study data for consistency checks'],
+    outputs: ['Comparative efficacy vs all relevant comparators across the network','Forest plots, league tables, ranking statistics (P-score, SUCRA)','Heterogeneity (I²) and inconsistency (node-splitting) assessments','Sensitivity analyses: fixed vs random effects, outlier exclusion','Full NMA technical report with methodology section for HTA submission'],
+    teams: ['Lead NMA Biostatistician (specialist)','HEOR Evidence Synthesis Lead','HTA Specialists (methodology validation & feasibility)','External academic statisticians or CRO (peer validation)'],
+    note: '<strong>Most scrutinised analytical component:</strong> IQWiG (Germany) prefers direct evidence and may discount NMA; NICE accepts NMA with full uncertainty reporting and methodological transparency. The NMA must be registered in PROSPERO and the network feasibility assessment documented. Bayesian NMA is preferred by NICE for reporting probabilistic uncertainty. Heterogeneity across the network is the most common grounds for HTA challenge.'
+  },
+  pro: {
+    title: 'PRO / QoL — Patient-Reported Outcomes & Health-Related Quality of Life',
+    inputs: ['EQ-5D (EQ-5D-3L / EQ-5D-5L) data collected in clinical trials','Disease-specific PRO instruments: FACT-G, EORTC QLQ-C30, KCCQ, ACQ','Psychometric validation studies for any novel instruments','Utility mapping studies (disease-specific → EQ-5D) for indirect utility derivation','Patient preference studies (Discrete Choice Experiments / TTO / SG)','COA regulatory strategy aligned with FDA/EMA PRO guidance'],
+    outputs: ['Health state utility values (HSUVs) by health state for economic model','QALY estimates for cost-utility analysis (CEA)','PRO responder analyses and meaningful change thresholds (MID/MCID)','Patient burden narrative for humanistic value domain','HRQoL chapter of GVD with full instrument reporting'],
+    teams: ['PRO Specialist / Psychometrician','HEOR (utility analysis, QALY calculation)','Clinical Development (instrument selection & COA strategy)','Health Economists (HSUV inputs to model)','Regulatory Affairs (COA qualification alignment)'],
+    note: '<strong>NICE requirement:</strong> EQ-5D-3L with the UK value set (Dolan tariff) is mandated for NICE CUA submissions. EQ-5D-5L requires crosswalk to 3L values. If EQ-5D was not collected in trials, a utility mapping study must be conducted — and the mapping methodology will be scrutinised. NICE DSU TSD 9 and TSD 10 provide the methodological standards that must be followed.'
+  },
+  rwe: {
+    title: 'RWE / RWD — Real-World Evidence Studies',
+    inputs: ['EHR databases: Flatiron Health (oncology), CPRD (UK), German Pharmacoepidemiology Database (GePaRD)','Health claims: SEER-Medicare, IBM MarketScan, Optum, IMS/IQVIA','Patient registries (disease-specific registries, REMS registries)','Named patient / expanded access program data','Prospective observational studies designed to fill trial evidence gaps'],
+    outputs: ['Real-world effectiveness data vs trial efficacy (bridging evidence)','Treatment patterns, adherence, persistence, switching behaviour','Resource utilisation, hospitalisations, and healthcare costs for BIM','Subgroup outcomes data not captured in trial populations','Evidence package for MEA / outcomes-based contract negotiation','Post-launch data for reassessment submissions (ZIN, AIFA)'],
+    teams: ['HEOR RWE Study Lead','Medical Affairs (registry oversight & clinical oversight)','Epidemiologists (study design & confounding control)','Data Scientists / Real-World Analytics','External academic partners / CROs (database access)'],
+    note: '<strong>Increasing HTA relevance:</strong> RWE is now central to conditional reimbursement (ZIN, Netherlands), managed entry agreements (AIFA, Italy), and post-launch reassessments across Europe. The EMA-HTA parallel scientific advice process increasingly considers RWE study design. RWE studies must be pre-specified with clear protocols to be accepted by HTA bodies — retrospective mining of convenience data is typically insufficient.'
+  },
+  reg: {
+    title: 'Regulatory Package Review & Label Alignment',
+    inputs: ['Approved SmPC (Summary of Product Characteristics) or USPI (US label)','EPAR (European Public Assessment Report from EMA)','FDA Summary Basis of Approval (SBA) / product approval letter','Risk Management Plan (RMP) or REMS','Benefit-risk summary from regulatory submission'],
+    outputs: ['Claim alignment matrix: approved label language vs proposed GVD claims','Off-label risk assessment and red-flag claims inventory','Regulatory constraints mapped to GVD value messaging','Label language incorporated verbatim into GVD executive summary','Compliance framework for MLR review process'],
+    teams: ['Regulatory Affairs Lead / Director','Medical Affairs (clinical accuracy)','Legal / Compliance (off-label risk)','Medical Writers (claims matrix documentation)'],
+    note: '<strong>Non-negotiable gate:</strong> Every efficacy and safety claim in the GVD must be directly traceable to approved label language. Regulatory Affairs enforces this before any content enters MLR review. Claims based on subgroup analyses, exploratory endpoints, or data not reflected in the label require explicit legal and regulatory sign-off. Off-label content — even if scientifically valid — must be segregated or excluded.'
+  },
+  hemodel: {
+    title: 'Health Economic Model (CEA / CUA / BIM)',
+    inputs: ['Clinical trial data: OS, PFS, ORR, time-on-treatment (survival extrapolation inputs)','NMA comparative efficacy estimates (relative treatment effects)','EQ-5D utility values by health state (on-treatment, progression, death)','Unit cost data: drug acquisition, administration, monitoring, AE management, end-of-life care','National healthcare resource utilisation (HCRU) data by country','Discount rates by country (3.5% UK; 3%/3% Germany; 5%/3% France)','Epidemiology data (treated population for BIM)'],
+    outputs: ['Incremental Cost-Effectiveness Ratio (ICER) vs all relevant comparators','Cost per QALY gained (primary output for NICE, TLV, PBAC, CADTH, ZIN)','Deterministic Sensitivity Analysis (DSA) — tornado diagrams','Probabilistic Sensitivity Analysis (PSA) — cost-effectiveness acceptability curve (CEAC)','Scenario analyses (alternative survival extrapolations, time horizons, perspectives)','Budget Impact Model (BIM) — 3–5 year fiscal horizon by country','Value-based price estimate aligned to WTP threshold'],
+    teams: ['Health Economist (model architect & primary builder)','Lead Biostatistician (survival extrapolation sign-off)','HTA Specialist (methodology validation — NICE reference case compliance)','Market Access Director (commercial input & price scenarios)','External academic health economists (independent validation / peer review)'],
+    note: '<strong>Model standards:</strong> Built in Microsoft Excel (standard) or R (increasingly used for reproducibility). NICE requires adherence to DSU TSD reference case. Independent external validation is best practice and may be required by some HTA bodies. Country adaptations require local cost data, discount rates, and perspective adjustments. Survival extrapolation selection is often the largest source of HTA body challenge — extrapolation choices must be clinically justified.'
+  },
+  hta_strat: {
+    title: 'HTA Dossier Strategy & Evidence Planning',
+    inputs: ['HTA body submission guidelines: NICE STA/MTA, HAS dossier, IQWiG Module 4, PBAC guidelines, EUnetHTA Core HTA','Analogue / precedent HTA decisions (prior similar drugs in class)','Early Scientific Advice (ESA) outcomes from NICE, HAS, ZIN, or EUnetHTA','SLR-derived evidence gap analysis (what data is missing vs what HTA requires)','Competitive intelligence on comparators and their HTA outcomes'],
+    outputs: ['Country-by-country HTA submission strategy document','PICOS definition endorsed per HTA body requirements','Evidence generation plan with timelines (RWE studies, registries, additional analyses)','Gap analysis with mitigation strategies and risk register','HTA submission timelines aligned with regulatory approval milestones','Country prioritisation framework (launch sequence rationale)'],
+    teams: ['HTA Strategy Director / Global HTA Lead','Market Access Director','Global HEOR (evidence gap input)','Regulatory Affairs (approval timeline alignment)','Country Medical Advisors and Local Market Access Leads'],
+    note: '<strong>Timing is everything:</strong> Early Scientific Advice (ESA) from NICE, HAS, or EUnetHTA (Joint Scientific Consultation) should ideally be sought pre-Phase III — the window before the SAP is locked. ESA outcomes can directly influence trial design: endpoint selection, PRO instrument choice, comparator arms, and subgroup stratification. Retrospective fixes to misaligned evidence are rarely fully satisfactory to HTA bodies.'
+  },
+  vf: {
+    title: 'Value Framework & Value Story Development',
+    inputs: ['Payer research: qualitative interviews, payer advisory boards, willingness-to-pay surveys','KOL insights on unmet need and treatment paradigm','Clinical trial primary, secondary, and exploratory endpoints','Competitive intelligence on competitors\' value messaging','Patient advocacy group inputs on patient priorities','Brand strategy and positioning from commercial team'],
+    outputs: ['Value proposition statement (single distilled value claim)','Three-domain value framework: Clinical / Humanistic / Economic','Messaging hierarchy: headline claims → supporting evidence → data points','GVD Executive Summary narrative (first chapter)','Payer-facing value story slide deck for advisory boards and negotiations','Launch sequencing and market prioritisation rationale'],
+    teams: ['Market Access Strategy Lead / VP','Medical Affairs (clinical message validation)','HEOR (evidence substantiation)','Brand / Commercial team (positioning alignment)','Patient Advocacy Liaison','Communications / Medical Education agency'],
+    note: '<strong>Architecture of the GVD:</strong> The value story is the narrative framework that gives meaning to all the evidence. It translates clinical and economic data into payer-relevant messages. Every chapter of the GVD should reinforce the core value story. Inconsistency between the value story and specific chapters undermines credibility with HTA bodies. The value story also drives payer-facing materials (abbreviated GVD, reimbursement submission cover letters).'
+  },
+  pricing: {
+    title: 'Pricing & Market Access Strategy',
+    inputs: ['WTP thresholds by country (£30K NICE / €80K ZIN / NOK 500K Norway…)','International Reference Pricing (IRP) linkage mapping','Cost-effectiveness model ICER outputs (value-based price estimate)','Analogue pricing landscape (comparable approved drugs by mechanism, indication)','Internal P&L and cost-of-goods constraints','Payer research on willingness-to-pay and price sensitivity'],
+    outputs: ['Target net and list price by country and region','Launch sequence recommendation (market prioritisation by WTP and IRP risk)','Access risk matrix: probability and impact of restricted access by country','Pricing governance memo (internal approval of price recommendation)','Managed Entry Agreement (MEA) framework and scenarios','Input to outcome-based contract design'],
+    teams: ['Global Pricing Lead / Director','Market Access Director','Health Economists (WTP / value-based price input)','Finance / Business Development (P&L)','Country Market Access Managers','Legal (pricing contract review)'],
+    note: '<strong>IRP linkage is a critical constraint:</strong> International Reference Pricing creates a domino effect — the price set in Germany (free pricing post-AMNOG) often becomes the IRP anchor for other countries. This makes launch sequence one of the most commercially significant strategic decisions. High-WTP markets (Germany, Switzerland, USA) typically launch first. Countries with aggressive IRP policies (Turkey, Greece, Romania) typically launch late or under managed access.'
+  },
+  dis_mod: {
+    title: 'GVD Module 1 — Disease Background Chapter',
+    inputs: ['TLR outputs: epidemiology data, burden of disease estimates','Clinical practice guidelines and treatment algorithms (ESMO, ASCO, ESC, ADA…)','Patient burden and HRQoL data from TLR','Unmet need documentation from SLR','Market research on current treatment practice and gaps'],
+    outputs: ['Chapter 1 of GVD: Disease background and unmet medical need','Pathophysiology and mechanism of disease narrative','Current standard of care and treatment pathway description','Quantified unmet need (clinical, humanistic, economic dimensions)','Foundation for value story and HTA body value framework'],
+    teams: ['Medical Affairs (clinical authorship)','HEOR (epidemiology and burden data)','Medical Writers (chapter drafting)','KOLs / Clinical Advisors (scientific review)'],
+    note: '<strong>Foundation chapter:</strong> This chapter sets the clinical and societal context and establishes the unmet need that justifies the drug\'s value. HTA bodies use this chapter to assess the severity of the condition (relevant for TLV proportionality, NICE EOL criteria, HAS SMR rating). A poorly evidenced unmet need narrative weakens the entire value proposition — it must be specific, quantified, and referenced to high-quality sources.'
+  },
+  clin_mod: {
+    title: 'GVD Module 2 — Clinical Evidence Chapter',
+    inputs: ['CTD / CSR data packages (all pivotal and supportive studies)','SLR evidence tables (systematic comparative data)','NMA / ITC results and technical report','PRO / QoL data from trials','Safety database: AEs, SAEs, deaths, discontinuations'],
+    outputs: ['Chapter 2 of GVD: Full clinical evidence synthesis','Efficacy and safety evidence tables with source references to CSRs','NMA comparative effectiveness results versus all relevant comparators','Subgroup analyses relevant to HTA body criteria','Long-term effectiveness data (OS, durability)','PRO / QoL responder analyses and utility data'],
+    teams: ['Clinical Development (data provision)','Lead Biostatistician (analysis sign-off)','Medical Affairs (clinical interpretation & accuracy)','HTA Specialists (framing for HTA requirements)','Medical Writers (authorship)'],
+    note: '<strong>Largest chapter; most scrutinised:</strong> This is the technical heart of the GVD and the primary chapter reviewed by HTA bodies in their clinical assessment. Every table must be source-documented to a CSR, publication, or analysis report. Subgroup claims must be pre-specified in the SAP; post-hoc analyses must be clearly labelled and hypothesis-generating only. Inconsistencies between this chapter and the regulatory submission will be identified by HTA bodies — cross-referencing with the EPAR is standard.'
+  },
+  econ_mod: {
+    title: 'GVD Module 3 — Economic Value Chapter',
+    inputs: ['Health economic model outputs: ICER, cost per QALY, DSA, PSA','Budget Impact Model (BIM) outputs by country','Healthcare resource utilisation data (hospitalisations, monitoring, AE costs)','Productivity loss and absenteeism data','Caregiver burden estimates','Country-specific cost inputs (drug costs, administration, healthcare unit costs)'],
+    outputs: ['Chapter 3 of GVD: Full economic value documentation','Base case ICER with tornado diagram (DSA) and CEAC (PSA)','BIM: 3–5 year fiscal horizon by country/payer perspective','Cost-of-illness avoided analysis','Productivity and indirect cost impact','Economic value narrative framed within WTP thresholds'],
+    teams: ['HEOR / Health Economists (model results authorship)','Market Access Director (commercial framing)','Biostatisticians (survival extrapolation validation)','Medical Writers (chapter authorship)'],
+    note: '<strong>Country adaptation required:</strong> The core model is built globally, but each country adaptation requires local cost inputs, discount rates, healthcare system perspective, and WTP threshold framing. NICE submissions require the reference case perspective (NHS + PSS) and specific analysis standards. Presenting results without country-specific context is a common grounds for HTA rejection or increased uncertainty rating.'
+  },
+  ref_mod: {
+    title: 'GVD Module 4 — References & Evidence Base',
+    inputs: ['All citations from SLR, TLR, clinical evidence, and economic chapters','Clinical Study Reports (CSRs) as primary data sources','HTA body guidance documents and methodology papers','SAPs, ICH guidelines, CONSORT/PRISMA reporting standards'],
+    outputs: ['Full bibliography with Vancouver or AMA citation formatting','GRADE evidence quality ratings for key evidence tables','Appendices: full data extraction tables, SLR search strings, PRISMA flowcharts','Evidence library accessible to country teams for local adaptation','Searchable reference database (often in Endnote / Zotero / proprietary systems)'],
+    teams: ['Medical Writers (bibliography management)','HEOR (evidence table compilation)','Medical Information (source retrieval and verification)','Documentation / Knowledge Management team'],
+    note: '<strong>Source document for country teams:</strong> Module 4 is the evidence reservoir. Country Medical Affairs and Market Access teams extract, translate, and localise content from these appendices for national HTA submissions. Quality and completeness here directly determines speed and quality of local adaptation. Full data tables (not just summary statistics) must be available to support local economic model adaptation with local cost inputs.'
+  },
+  mlr: {
+    title: 'Medical-Legal-Regulatory (MLR) Review Process',
+    inputs: ['Draft GVD chapters (all modules) — typically 2–3 draft cycles','Approved label (SmPC / USPI) as compliance reference','Company promotional material review SOPs','MLR annotation: claims with supporting citations','Legal guidance on fair balance, substantiation standards, and off-label risk'],
+    outputs: ['MLR-approved GVD (all claims reviewed, annotated, and cleared)','Tracked changes and review comments log (full audit trail)','Claims support document with citation for every factual claim','Approved For Use (AFU) certification — formal release for country use','List of claims requiring additional substantiation (outstanding actions)'],
+    teams: ['Medical Affairs (MLR chair / primary reviewer)','Regulatory Affairs (label compliance enforcement)','Legal / Compliance (legal defensibility review)','Brand Medical Lead (commercial-medical alignment)','External legal counsel (for complex off-label issues)'],
+    note: '<strong>Mandatory governance gate:</strong> MLR is non-negotiable and must be completed before any GVD content is shared externally or submitted to HTA bodies. Multiple review rounds are standard: Draft → MLR 1 → Revisions → MLR 2 → Final Approval. Companies with global MLR processes often use Veeva Vault PromoMats or similar document management platforms. Off-label content — even if scientifically valid — must either be removed or clearly framed within a non-promotional, scientific communication context.'
+  },
+  ext_review: {
+    title: 'External Scientific Review & Validation',
+    inputs: ['Draft GVD clinical and economic chapters (post-MLR or concurrent)','KOL advisory board panel composition and agenda','HTA body Scientific Advice letters and outstanding questions','Country medical team feedback from pre-submission HTA interactions','Competitive landscape review'],
+    outputs: ['Scientific review comments from KOLs and HTA experts','Recommendations for strengthening evidence framing','Revised chapters incorporating expert input','Country team sign-off checklist','KOL endorsement documentation (where appropriate for scientific advisory)'],
+    teams: ['Medical Affairs (KOL relationship management)','Market Access (HTA expert engagement)','Country Medical Directors (local scientific sign-off)','Independent HTA experts / academic advisors','Patient advocacy representatives (for humanistic value validation)'],
+    note: '<strong>Strategic value:</strong> External KOL review strengthens the scientific credibility of the GVD and can pre-empt HTA body challenges. KOL advisory board insights also help refine the value story framing for specific markets. Some companies conduct mock HTA committee reviews using external HTA experts to stress-test the dossier before formal submission — a high-value investment that reduces rejection risk.'
+  },
+  localize: {
+    title: 'Country / Payer Adaptation & Local Submission',
+    inputs: ['Final MLR-approved GVD (global) as master source document','Country-specific HTA submission templates (NICE STA format, HAS dossier template, IQWiG Module 4)','Local epidemiology and cost database data','Country-specific healthcare system inputs (formulary, payer structure)','Country payer research and advisory board insights'],
+    outputs: ['Country value dossier: NICE STA, HAS dossier, IQWiG Module 4, CADTH CDR submission, PBAC PSD','Localised economic model with country-specific cost inputs and discount rates','Local language translation (full or executive summary)','Payer value dossier (abbreviated GVD for payer meetings and formulary submissions)','Country-specific BIM for national payer negotiations'],
+    teams: ['Local Market Access Manager (country lead)','Country Medical Advisor (clinical sign-off)','Health Economists (local model adaptation)','Medical Writers (local chapter authorship and translation)','HTA Specialists (country submission management)','Country Legal / Compliance (local review)'],
+    note: '<strong>Where the global becomes local:</strong> This is where the GVD is operationalised into market access outcomes. Each HTA body has specific formatting, evidence hierarchy, and analytical requirements. The global GVD acts as the evidence library; country teams extract, localise, and reformat content to meet national requirements. Timeline management is critical — HTA submissions typically must be filed within 90 days of regulatory approval in many EU markets.'
+  },
+  gvd_final: {
+    title: 'Global Value Dossier (GVD) — Final Approved Document',
+    inputs: ['All MLR-approved GVD modules: Disease Background, Clinical Evidence, Economic Value, References','External scientific review outputs and KOL comments incorporated','Country adaptation-ready base content (modular structure)','Executive summary (standalone document)','Full evidence appendices and bibliography'],
+    outputs: ['Master GVD document (typically 200–600+ pages depending on indication complexity)','Executive Summary (standalone 20–30 page document)','Country-specific submission packages derived from GVD','Payer value dossier (abbreviated version for payer engagement)','Scientific slide deck for advisory boards and HTA interactions','Field team training materials (core value messages, Q&A)','HTA body-specific submission dossiers derived from GVD master'],
+    teams: ['DOCUMENT OWNER: Global Market Access Director / VP Market Access','EVIDENCE OWNER: HEOR Director (clinical and economic evidence integrity)','MEDICAL SIGN-OFF: Medical Affairs Director / Chief Medical Officer','REGULATORY SIGN-OFF: Regulatory Affairs Director','LEGAL SIGN-OFF: General Counsel / Chief Compliance Officer','PROJECT LEAD: Global Program Manager (version control, timelines)'],
+    note: '<strong>Living document — not a one-time deliverable:</strong> The GVD is continuously updated at every major clinical and regulatory milestone: new Phase III data readouts, regulatory approval, label updates, new safety information, and post-launch RWE. Version control and change documentation are critical. The GVD typically begins development 18–24 months before regulatory submission and is first "completed" at the time of regulatory approval — thereafter it evolves with the product lifecycle. A core HEOR / Market Access team maintains GVD ownership post-launch.'
+  }
+};
+
+let activeCard = null;
+
+function showDetail(el, id) {
+  const d = details[id];
+  if (!d) return;
+  if (activeCard) activeCard.classList.remove('active');
+  if (document.getElementById('gvd-final-box')) document.getElementById('gvd-final-box').classList.remove('active');
+  el.classList.add('active');
+  activeCard = el;
+
+  const panel = document.getElementById('detail-panel');
+  panel.innerHTML = `
+    <div class="detail-panel-inner">
+      <div class="detail-title">${d.title}</div>
+      <div class="detail-grid">
+        <div class="detail-col">
+          <h4>Inputs / Data Sources</h4>
+          <ul>${d.inputs.map(i=>`<li>${i}</li>`).join('')}</ul>
+        </div>
+        <div class="detail-col">
+          <h4>Outputs / Deliverables</h4>
+          <ul>${d.outputs.map(o=>`<li>${o}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div style="margin-bottom:14px;">
+        <h4 style="font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Teams Responsible</h4>
+        <div class="detail-teams">${d.teams.map(t=>`<span class="team-chip">${t}</span>`).join('')}</div>
+      </div>
+      <div class="detail-note">${d.note}</div>
+    </div>
+  `;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function showTab(t) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (t==='a'&&i===0)||(t==='b'&&i===1)));
+  document.getElementById('tab-a').classList.toggle('active', t==='a');
+  document.getElementById('tab-b').classList.toggle('active', t==='b');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('scrollTop');
+  btn.classList.toggle('visible', window.scrollY > 400);
+});
+</script>
+</body>
+</html>
