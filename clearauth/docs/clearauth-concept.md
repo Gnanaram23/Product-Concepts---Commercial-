@@ -59,7 +59,7 @@ The PA process was designed as a cost-control mechanism — ensuring expensive m
 
 2.  CAQH CORE Phase V: Electronic PA standards now require payers processing Medicare/Medicaid to support real-time PA via FHIR. ClearAuth is built to this standard from day one.
 
-3.  GenAI Maturity: Large language models (Claude, GPT-4) are now capable of clinically accurate documentation assistance, appeal letter generation, and guideline matching at production quality.
+3.  GenAI Maturity: Large language models are now capable of clinically accurate documentation assistance, appeal letter generation, and guideline matching at production quality.
 
 4.  EHR API Openness: The 21st Century Cures Act mandates EHR vendors expose FHIR APIs. Epic, Cerner, and Athena now provide SMART on FHIR access, enabling automated data pull for PA forms.
 
@@ -113,7 +113,7 @@ The following illustrates how ClearAuth supports every step of the PA process, f
 
 **5.1 The ClearAuth AI Engine**
 
-ClearAuth integrates Anthropic Claude (claude-sonnet-4-6) as its AI backbone, deployed with role-specific system prompts that ensure every AI interaction is contextually appropriate — clinical and evidence-based for providers, plain-language and empathetic for patients, criteria-driven and audit-ready for payers.
+ClearAuth uses a large language model as its AI backbone, chosen per deployment (hosted or self-hosted) and deployed with role-specific system prompts that ensure every AI interaction is contextually appropriate — clinical and evidence-based for providers, plain-language and empathetic for patients, criteria-driven and audit-ready for payers.
 
 The AI operates at three strategic points in the PA workflow where human effort is highest and accuracy most critical:
 

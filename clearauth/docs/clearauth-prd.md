@@ -383,7 +383,7 @@ A clinical reviewer at a health plan responsible for evaluating PA requests agai
 | State            | React Context API + hooks                | Auth, global toasts, role context                                           |
 | Backend          | Express.js + TypeScript                  | Lightweight REST API, fast to iterate                                       |
 | Data Store (MVP) | In-memory (module-level arrays)          | No database setup for MVP demo; swap to PostgreSQL for production           |
-| AI Integration   | Anthropic Claude API (claude-sonnet-4-6) | PA form auto-fill, appeal generation, document analysis, guideline matching |
+| AI Integration   | Any OpenAI-compatible LLM API (hosted or self-hosted), with a rules-engine fallback | PA form auto-fill, appeal generation, document analysis, guideline matching |
 | PA Exchange      | HL7 FHIR R4 / NCPDP                      | Electronic PA submission per CMS 2026 mandate                               |
 | Build/Deploy     | Vite + Node.js + Replit / Netlify        | Zero-config deployment, CI/CD pipeline                                      |
 
@@ -407,7 +407,7 @@ A clinical reviewer at a health plan responsible for evaluating PA requests agai
 
 - GET /api/reauth — Reauthorization cases with urgency classification
 
-- POST /api/ai — AI response. Body: { role, feature, message } → role-aware mock response or live Claude API call
+- POST /api/ai — AI response. Body: { role, feature, message } → grounded rules-engine response, or an LLM response when one is configured
 
 **7.3 Security & Compliance Requirements**
 
@@ -427,7 +427,7 @@ A clinical reviewer at a health plan responsible for evaluating PA requests agai
 
 **8.1 AI Feature Summary**
 
-ClearAuth embeds AI at three strategic points in the PA workflow: at submission (to improve documentation quality), at review (to match clinical evidence against guidelines), and after denial (to accelerate appeals). All AI features use Anthropic Claude claude-sonnet-4-6 via the Messages API.
+ClearAuth embeds AI at three strategic points in the PA workflow: at submission (to improve documentation quality), at review (to match clinical evidence against guidelines), and after denial (to accelerate appeals). All AI features use a large language model through a provider-agnostic Chat Completions interface, so the model can be swapped or self-hosted; when no model is configured, a rules engine answers from the case record and coverage criteria.
 
 |                     |                |                              |                                                                                                   |
 |---------------------|----------------|------------------------------|---------------------------------------------------------------------------------------------------|
@@ -505,7 +505,7 @@ The MVP delivers the core PA submission, tracking, and AI assistance workflow fo
 | Phase 1     | Weeks 3–5    | Provider module: Dashboard, Cases, New PA Modal, Appeals, Reauth              |
 | Phase 2     | Weeks 6–7    | Patient module: Dashboard, Journey Tracker, Documents, AI Assistant           |
 | Phase 3     | Week 8       | Payer module: Dashboard, Review Queue, AI Features                            |
-| Phase 4     | Weeks 9–10   | AI integration (Claude API), document analyzer, appeal generator, PA insights |
+| Phase 4     | Weeks 9–10   | AI integration (LLM API), document analyzer, appeal generator, PA insights |
 | Phase 5     | Weeks 11–12  | QA, HIPAA compliance review, performance testing, deployment to production    |
 | Beta Launch | Week 13      | 3 pilot provider practices, 2 payer partners — feedback collection            |
 | v1.0 GA     | Week 16      | General availability launch with full documentation and support               |
