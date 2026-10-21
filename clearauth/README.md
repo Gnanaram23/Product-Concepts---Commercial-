@@ -2,7 +2,7 @@
 
 ClearAuth puts the provider, the patient and the payer on one shared view of a prior authorization case, with AI help at the points where cases usually stall: incomplete documentation, unclear status, and slow clinical review.
 
-**[Open the live prototype](https://gnanaram23.github.io/Product-Concepts---Commercial-/clearauth/)** (runs in your browser) · [Replit deployment](https://pharma-pa-ra-hub--gnanaramm.replit.app/) · [Concept document](docs/clearauth-concept.md) · [PRD](docs/clearauth-prd.md)
+**[Open the live prototype](https://gnanaram23.github.io/Product-Concepts---Commercial-/clearauth/)** (runs in your browser) · [Concept document](docs/clearauth-concept.md) · [PRD](docs/clearauth-prd.md)
 
 ![Provider dashboard](screens/provider-dashboard.png)
 

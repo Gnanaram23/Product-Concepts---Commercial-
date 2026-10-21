@@ -2,7 +2,7 @@
 
 Pharma Action Builder connects the models a commercial analytics team builds to the field rep who has to act on them. Each rep gets a personalised weekly plan for every HCP (healthcare professional) on their list: which channel to use, when, and why. Analytics teams build, monitor and deploy the models behind those plans without writing code.
 
-**[Open the live prototype](https://gnanaram23.github.io/Product-Concepts---Commercial-/pharma-action-builder/)** · [Netlify deployment](https://pharma-action-builder.netlify.app/) · [Concept document](docs/action-builder-concept.md) · [PRD](docs/action-builder-prd.md)
+**[Open the live prototype](https://gnanaram23.github.io/Product-Concepts---Commercial-/pharma-action-builder/)** · [Concept document](docs/action-builder-concept.md) · [PRD](docs/action-builder-prd.md)
 
 ![HCP Engagement Console overview](screens/02-hec-overview.png)
 

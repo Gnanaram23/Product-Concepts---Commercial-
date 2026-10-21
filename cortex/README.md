@@ -2,7 +2,7 @@
 
 Cortex turns a business question ("What drove rebate variance last quarter?") into a governed, explainable answer drawn from a company's commercial data, without the user writing SQL or hunting through dashboards.
 
-**[Open the analyst workspace](https://gnanaram23.github.io/Product-Concepts---Commercial-/cortex/workspaces/1)** · [Lovable deployment](https://data-sense-forge-87.lovable.app) · [Concept document](docs/cortex-concept.md) · [PRD](docs/cortex-prd.md)
+**[Open the analyst workspace](https://gnanaram23.github.io/Product-Concepts---Commercial-/cortex/workspaces/1)** · [Concept document](docs/cortex-concept.md) · [PRD](docs/cortex-prd.md)
 
 ![Cortex answering a rebate question with a chart, sources and the SQL it ran](screens/workspace-live-query.png)
 

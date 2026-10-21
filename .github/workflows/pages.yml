@@ -48,6 +48,18 @@ jobs:
           pnpm install --frozen-lockfile
           VITE_API_MODE=demo BASE_PATH="${SITE_BASE}clearauth/" pnpm --filter @workspace/clearauth run build
 
+      - name: Check the ClearAuth server and policy engine
+        working-directory: clearauth/app
+        run: |
+          pnpm run typecheck
+          pnpm --filter @workspace/api-server run build
+          PORT=8080 node artifacts/api-server/dist/index.mjs &
+          sleep 3
+          curl -fsS localhost:8080/api/healthz
+          curl -fsS localhost:8080/api/cases/PA-127904/policy | grep -q '"recommendation"'
+          curl -fsS -X POST localhost:8080/api/ai -H 'content-type: application/json' \
+            -d '{"role":"provider","feature":"pa_insights","caseId":"PA-127904","message":"insights"}' | grep -q 'Policy fit score'
+
       - name: Check the Action Builder models train
         run: node -e "globalThis.performance=require('perf_hooks').performance; require('./pharma-action-builder/prototype/ml.js'); const r=PAB_ML.train({algorithm:'gbm'}); console.log('Test AUC', r.metrics.auc.toFixed(3)); if(!(r.metrics.auc>0.6)) process.exit(1)"
 

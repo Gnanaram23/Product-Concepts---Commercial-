@@ -73,9 +73,9 @@ pnpm run build:app && pnpm start    # http://localhost:8080
 |---|---|---|
 | **Docker** | `docker build -t clearauth . && docker run -p 8080:8080 clearauth` | Full app: API and web in one container |
 | **Docker Compose + local LLM** | `docker compose --profile llm up`, then `docker compose exec ollama ollama pull llama3.2` and set `LLM_BASE_URL=http://ollama:11434/v1`, `LLM_MODEL=llama3.2` | Full app with a free local model |
-| **Render** | New > Blueprint > this repo (uses `render.yaml`) | Hosted full app on the free plan |
+| **Render** | New > Blueprint > this repository (uses the `render.yaml` at the repository root) | Hosted full app on the free plan |
 | **Netlify / Vercel** | Import the repo; `netlify.toml` / `vercel.json` are included | Static site in demo mode |
-| **GitHub Pages** | Settings > Pages > Source: GitHub Actions (public repos) | Static site in demo mode, rebuilt on every push |
+| **GitHub Pages** | Published with the other prototypes by the repository's Pages workflow; see [DEPLOY.md](../../DEPLOY.md) | Static site in demo mode, rebuilt on every push |
 
 In demo mode, data is saved in the visitor's browser (localStorage) and can be
 reset from the sidebar.

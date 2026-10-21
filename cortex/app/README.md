@@ -67,7 +67,7 @@ npm run build      # static site in dist/
 
 | Option | How |
 |---|---|
-| GitHub Pages | Settings > Pages > Source: **GitHub Actions**. The included workflow builds and publishes on every push (public repositories). |
+| GitHub Pages | Published with the other prototypes by the repository's Pages workflow; see [DEPLOY.md](../../DEPLOY.md). |
 | Netlify | Import the repository; `netlify.toml` is included. |
 | Vercel | Import the repository; `vercel.json` is included. |
 | Docker | `docker build -t cortex . && docker run -p 8080:80 cortex` |

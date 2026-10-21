@@ -292,7 +292,7 @@ export default function AdminConsole() {
                           <SelectContent>
                             <SelectItem value="GPT-4o">GPT-4o</SelectItem>
                             <SelectItem value="GPT-4-turbo">GPT-4-turbo</SelectItem>
-                            <SelectItem value="Claude-3">Claude-3</SelectItem>
+                            <SelectItem value="Llama-3.1-70B">Llama 3.1 70B (self-hosted)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
