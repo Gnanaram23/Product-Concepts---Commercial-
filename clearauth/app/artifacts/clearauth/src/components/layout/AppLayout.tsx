@@ -4,6 +4,7 @@ import { Bell, Search, LayoutDashboard, FileText, CheckCircle, RefreshCcw, Spark
 import { useAuth } from "@/context/AuthContext";
 import { AIChatModal } from "@/components/modals/AIChatModal";
 import { cn } from "@/lib/utils";
+import { getApiMode, resetDemoData } from "@/lib/api-mode";
 
 const NAV_CONFIG = {
   provider: [
@@ -127,7 +128,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                             : "text-[#374151] hover:bg-[#F9FAFB] hover:text-[#111827] font-medium border-l-2 border-transparent"
                         )}
                       >
-                        <item.icon className={cn("w-4 h-4", isActive ? "text-[#2563EB]" : (item as Record<string, string>).color || "text-[#6B7280] group-hover:text-[#374151]")} />
+                        <item.icon className={cn("w-4 h-4", isActive ? "text-[#2563EB]" : ("color" in item ? item.color : undefined) || "text-[#6B7280] group-hover:text-[#374151]")} />
                         {item.label}
                       </Link>
                     );
@@ -139,6 +140,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
           {/* Bottom Account Section */}
           <div className="p-4 border-t">
+            {getApiMode() === "demo" && (
+              <div className="mb-3 rounded-lg bg-[#F5F3FF] border border-[#DDD6FE] px-3 py-2 text-[11px] leading-snug text-[#5B21B6]">
+                <span className="font-bold">Demo mode.</span> Runs in your browser; changes are saved on this device only.{" "}
+                <button onClick={resetDemoData} className="font-bold underline">Reset data</button>
+              </div>
+            )}
             {/* Quick AI chat button in sidebar */}
             <button
               onClick={() => setAiOpen(true)}

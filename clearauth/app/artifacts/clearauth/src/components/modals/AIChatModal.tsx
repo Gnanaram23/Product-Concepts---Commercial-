@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Sparkles, Send, Bot, User, FileText, Scale, Zap, Activity, MessageSquare, Heart, AlertTriangle, ClipboardCheck, BarChart3, RefreshCcw } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { useAiChat } from "@workspace/api-client-react";
+import { useAiChat, useListCases } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
 
 type Feature = { id: string; title: string; desc: string; icon: React.ElementType; prompt: string };
@@ -38,31 +38,48 @@ const QUICK_CHIPS: Record<string, string[]> = {
   payer: ["Match to guidelines", "Analyze clinical criteria", "Suggest alternatives", "Draft denial letter"]
 };
 
+function renderInline(text: string) {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+  while (remaining.includes('**')) {
+    const start = remaining.indexOf('**');
+    const end = remaining.indexOf('**', start + 2);
+    if (end === -1) break;
+    if (start > 0) parts.push(<span key={key++}>{remaining.slice(0, start)}</span>);
+    parts.push(<strong key={key++} className="font-semibold text-foreground">{remaining.slice(start + 2, end)}</strong>);
+    remaining = remaining.slice(end + 2);
+  }
+  if (remaining) parts.push(<span key={key++}>{remaining}</span>);
+  return parts;
+}
+
 function renderMarkdown(text: string) {
-  const lines = text.split('\n');
-  return lines.map((line, i) => {
-    const parts: React.ReactNode[] = [];
-    let remaining = line;
-    let key = 0;
-    while (remaining.includes('**')) {
-      const start = remaining.indexOf('**');
-      const end = remaining.indexOf('**', start + 2);
-      if (end === -1) break;
-      if (start > 0) parts.push(<span key={key++}>{remaining.slice(0, start)}</span>);
-      parts.push(<strong key={key++} className="font-semibold text-foreground">{remaining.slice(start + 2, end)}</strong>);
-      remaining = remaining.slice(end + 2);
-    }
-    if (remaining) parts.push(<span key={key++}>{remaining}</span>);
+  return text.split('\n').map((line, i) => {
     if (line.startsWith('---')) return <hr key={i} className="border-border/50 my-2" />;
-    if (line.startsWith('# ')) return <div key={i} className="font-bold text-base text-foreground mt-1">{parts.slice(1)}</div>;
-    if (line === '') return <div key={i} className="h-2" />;
-    return <div key={i} className="leading-relaxed">{parts.length ? parts : line}</div>;
+    if (line.trim() === '') return <div key={i} className="h-2" />;
+    if (line.startsWith('# ')) return <div key={i} className="font-bold text-base text-foreground mt-1">{renderInline(line.slice(2))}</div>;
+    const bullet = line.match(/^(\s*)[-*] (.*)$/);
+    if (bullet) {
+      return (
+        <div key={i} className="leading-relaxed pl-4 relative">
+          <span className="absolute left-1 text-[#9CA3AF]">•</span>
+          {renderInline(bullet[2])}
+        </div>
+      );
+    }
+    return <div key={i} className="leading-relaxed">{renderInline(line)}</div>;
   });
 }
 
-export function AIChatModal({ isOpen, onClose, initialFeature = null }: { isOpen: boolean; onClose: () => void; initialFeature?: string | null }) {
-  const { role } = useAuth();
-  const [messages, setMessages] = useState<{ role: 'ai' | 'user'; content: string }[]>([]);
+type ChatMessage = { role: 'ai' | 'user'; content: string; source?: 'rules' | 'llm'; caseId?: string };
+
+export function AIChatModal({ isOpen, onClose, initialFeature = null, initialCaseId = null }: { isOpen: boolean; onClose: () => void; initialFeature?: string | null; initialCaseId?: string | null }) {
+  const { role, user } = useAuth();
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [caseId, setCaseId] = useState<string>(initialCaseId ?? "");
+  const { data: allCases = [] } = useListCases();
+  const caseOptions = role === 'patient' ? allCases.filter(c => c.patientId === user?.id) : allCases;
   const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [input, setInput] = useState("");
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -75,6 +92,7 @@ export function AIChatModal({ isOpen, onClose, initialFeature = null }: { isOpen
     if (isOpen) {
       setMessages([]);
       setSelectedFeature(null);
+      if (initialCaseId) setCaseId(initialCaseId);
       if (initialFeature) {
         const f = activeFeatures.find(x => x.id === initialFeature);
         if (f) handleFeatureClick(f);
@@ -97,15 +115,18 @@ export function AIChatModal({ isOpen, onClose, initialFeature = null }: { isOpen
   const callAI = async (text: string, feature?: string) => {
     try {
       const res = await aiChatMutation.mutateAsync({
-        data: { role, message: text, feature: feature ?? selectedFeature?.id ?? "general" }
+        data: {
+          role,
+          message: text,
+          feature: feature ?? "general",
+          caseId: caseId || undefined,
+          patientId: role === 'patient' ? user?.id : undefined,
+        }
       });
-      setTimeout(() => {
-        setMessages(p => [...p, { role: 'ai', content: res.response }]);
-      }, 600);
+      if (res.caseId && !caseId) setCaseId(res.caseId);
+      setMessages(p => [...p, { role: 'ai', content: res.response, source: res.source, caseId: res.caseId }]);
     } catch {
-      setTimeout(() => {
-        setMessages(p => [...p, { role: 'ai', content: "I'm sorry, I couldn't process that request. Please try again." }]);
-      }, 600);
+      setMessages(p => [...p, { role: 'ai', content: "I'm sorry, I couldn't process that request. Please try again." }]);
     }
   };
 
@@ -128,7 +149,7 @@ export function AIChatModal({ isOpen, onClose, initialFeature = null }: { isOpen
             </div>
             <div>
               <h2 className="text-[15px] font-bold text-[#111827] leading-tight">ClearAuth AI Assistant</h2>
-              <p className="text-[11px] text-[#6B7280]">Role: {role?.charAt(0).toUpperCase() + (role?.slice(1) ?? '')} • GenAI-Powered</p>
+              <p className="text-[11px] text-[#6B7280]">Role: {role?.charAt(0).toUpperCase() + (role?.slice(1) ?? '')} • Answers grounded in the selected case and coverage criteria</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors text-[#6B7280] hover:text-[#111827]">
@@ -175,6 +196,22 @@ export function AIChatModal({ isOpen, onClose, initialFeature = null }: { isOpen
           {/* Right Chat Panel */}
           <div className="flex-1 flex flex-col overflow-hidden">
 
+            {/* Case context */}
+            <div className="px-4 py-2 border-b bg-white flex items-center gap-2 shrink-0">
+              <label htmlFor="ai-case" className="text-[11px] font-bold uppercase tracking-wider text-[#9CA3AF] shrink-0">Case</label>
+              <select
+                id="ai-case"
+                value={caseId}
+                onChange={(e) => setCaseId(e.target.value)}
+                className="flex-1 min-w-0 h-8 rounded-lg border bg-[#F9FAFB] px-2 text-[12px] text-[#111827] outline-none focus:border-[#2563EB]"
+              >
+                <option value="">Auto-select a relevant case</option>
+                {caseOptions.map(c => (
+                  <option key={c.id} value={c.id}>{c.id} · {c.patientName} · {c.drug} · {c.status}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Quick Chips */}
             <div className="px-4 py-2.5 border-b bg-white flex flex-wrap gap-2 shrink-0">
               {activeChips.map(chip => (
@@ -218,6 +255,12 @@ export function AIChatModal({ isOpen, onClose, initialFeature = null }: { isOpen
                       : "bg-[#2563EB] text-white rounded-[16px_4px_16px_16px]"
                   )}>
                     {m.role === 'ai' ? renderMarkdown(m.content) : m.content}
+                    {m.role === 'ai' && m.source && (
+                      <div className="mt-2 pt-2 border-t border-[#F3F4F6] text-[10.5px] text-[#9CA3AF]">
+                        {m.source === 'llm' ? 'Written by the configured LLM from the case record' : 'Rules engine: built from the case record and coverage criteria'}
+                        {m.caseId ? ` · ${m.caseId}` : ''}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

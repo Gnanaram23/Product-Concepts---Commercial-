@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Life Sciences Product Concepts</title>
+<meta name="description" content="Four working product prototypes for pharma and biotech commercial teams: governed AI analytics, next best action, prior authorization and Global Value Dossier planning." />
+<style>
+  :root {
+    --bg: #f7f7f5; --surface: #ffffff; --ink: #16181d; --ink-2: #4a4f5a; --ink-3: #6f7480;
+    --line: #e4e4e0; --accent: #2b59c3; --accent-soft: #e9effb; --tag: #f0f0ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111316; --surface: #1a1d22; --ink: #eceef2; --ink-2: #b9bdc6; --ink-3: #8b909b;
+      --line: #2b2f36; --accent: #8fb0ff; --accent-soft: #1f2a44; --tag: #23272e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111316; --surface: #1a1d22; --ink: #eceef2; --ink-2: #b9bdc6; --ink-3: #8b909b;
+    --line: #2b2f36; --accent: #8fb0ff; --accent-soft: #1f2a44; --tag: #23272e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
+  header { padding: 56px 0 28px; }
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; }
+  h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.15; margin: 0 0 14px; letter-spacing: -.01em; }
+  .lede { color: var(--ink-2); max-width: 760px; margin: 0; font-size: 17px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding: 12px 0 40px; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+  .shot { aspect-ratio: 16 / 9; background: var(--tag); border-bottom: 1px solid var(--line); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top left; display: block; }
+  .body { padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  h2 { font-size: 21px; margin: 0; }
+  .who { font-size: 13px; color: var(--ink-3); margin: -6px 0 0; }
+  .card p { margin: 0; color: var(--ink-2); }
+  ul { margin: 0; padding-left: 18px; color: var(--ink-2); font-size: 15px; }
+  li { margin: 3px 0; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 6px; }
+  .btn { display: inline-block; padding: 9px 14px; border-radius: 9px; font-weight: 600; font-size: 14px; text-decoration: none; border: 1px solid var(--line); color: var(--ink); background: var(--surface); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  :root[data-theme="dark"] .btn.primary { color: #0d1220; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.primary { color: #0d1220; } }
+  .note { background: var(--accent-soft); border-radius: 12px; padding: 18px 20px; margin: 0 0 40px; color: var(--ink-2); }
+  .note h3 { margin: 0 0 6px; font-size: 16px; color: var(--ink); }
+  footer { border-top: 1px solid var(--line); padding: 22px 0 40px; color: var(--ink-3); font-size: 14px; }
+</style>
+</head>
+<body>
+  <header class="wrap">
+    <p class="eyebrow">Life sciences product concepts</p>
+    <h1>Four working prototypes for pharma and biotech commercial teams</h1>
+    <p class="lede">Each one starts from a real commercial workflow problem and goes from problem statement and requirements to a prototype you can use. Everything below runs in your browser on synthetic data.</p>
+  </header>
+
+  <main class="wrap">
+    <section class="grid">
+      <article class="card">
+        <div class="shot"><img src="assets/cortex.png" alt="Cortex answering a rebate question with a chart and SQL" loading="lazy" /></div>
+        <div class="body">
+          <h2>Cortex</h2>
+          <p class="who">Pricing, contracting and market access analysts</p>
+          <p>Governed AI analytics: ask a question in plain English and get an answer built from certified data, with the SQL and sources shown.</p>
+          <ul>
+            <li>Semantic layer turns questions into SQL that runs in the browser</li>
+            <li>Gross-to-net waterfalls, rebate exposure, renewal and exception-clause queries</li>
+            <li>Restricted datasets are blocked; upload a CSV; optional LLM</li>
+          </ul>
+          <div class="actions"><a class="btn primary" href="cortex/workspaces/1">Open the analyst workspace</a><a class="btn" href="__REPO__/tree/main/cortex">Docs and source</a></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="shot"><img src="assets/clearauth.png" alt="ClearAuth checking a prior authorization case against coverage criteria" loading="lazy" /></div>
+        <div class="body">
+          <h2>ClearAuth</h2>
+          <p class="who">Providers, patients and payers</p>
+          <p>Prior authorization in one place, with a coverage-policy engine that checks each request against the plan's criteria and explains the gaps.</p>
+          <ul>
+            <li>Provider, patient and payer views over the same cases</li>
+            <li>Criteria checks with evidence, fixes and a fit score; appeal and determination drafts</li>
+            <li>Demo runs in the browser; Docker or Render for the full server; optional LLM</li>
+          </ul>
+          <div class="actions"><a class="btn primary" href="clearauth/">Open ClearAuth</a><a class="btn" href="__REPO__/tree/main/clearauth">Docs and source</a></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="shot"><img src="assets/pharma-action-builder.png" alt="Pharma Action Builder model results with next best actions" loading="lazy" /></div>
+        <div class="body">
+          <h2>Pharma Action Builder</h2>
+          <p class="who">Field teams, commercial analytics and commercial excellence</p>
+          <p>Next Best Action for HCP engagement, plus a no-code workbench that trains and evaluates real models.</p>
+          <ul>
+            <li>Gradient boosting, random forest, logistic regression and CART, trained in the browser</li>
+            <li>Held-out AUC, confusion matrix and feature importance</li>
+            <li>Per-HCP best tactic by expected value, compared with a one-channel policy</li>
+          </ul>
+          <div class="actions"><a class="btn primary" href="pharma-action-builder/">Open Action Builder</a><a class="btn" href="__REPO__/tree/main/pharma-action-builder">Docs and source</a></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="shot"><img src="assets/gvd.png" alt="Global Value Dossier process map" loading="lazy" /></div>
+        <div class="body">
+          <h2>GVD Process Map</h2>
+          <p class="who">Market access, HEOR and medical affairs</p>
+          <p>The end-to-end process for building a Global Value Dossier: every evidence module, its owner, the hand-offs and the HTA bodies it serves.</p>
+          <ul>
+            <li>Five phases from literature review to country adaptation</li>
+            <li>Click any module for inputs, outputs, data sources and owning team</li>
+          </ul>
+          <div class="actions"><a class="btn primary" href="gvd/">Open the map</a><a class="btn" href="__REPO__/tree/main/gvd">Docs and source</a></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="note">
+      <h3>Run your own copy</h3>
+      Fork the repository, then go to Settings &rarr; Actions and enable workflows, and Settings &rarr; Pages and choose <strong>GitHub Actions</strong> as the source. The next push publishes all four prototypes at your own address. Other options (Netlify, Vercel, Docker, Render, a local LLM) are in the <a href="__REPO__/blob/main/DEPLOY.md">deployment guide</a>.
+    </section>
+  </main>
+
+  <footer class="wrap">
+    By Gnanaram M &middot; <a href="__REPO__">Source on GitHub</a> &middot; <a href="https://linkedin.com/in/gnanaram/">LinkedIn</a>. All data is synthetic; nothing here comes from an employer or client.
+  </footer>
+</body>
+</html>

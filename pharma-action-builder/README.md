@@ -2,7 +2,7 @@
 
 Pharma Action Builder connects the models a commercial analytics team builds to the field rep who has to act on them. Each rep gets a personalised weekly plan for every HCP (healthcare professional) on their list: which channel to use, when, and why. Analytics teams build, monitor and deploy the models behind those plans without writing code.
 
-**[Open the live prototype](https://pharma-action-builder.netlify.app/)** · [Concept document](docs/action-builder-concept.md) · [PRD](docs/action-builder-prd.md)
+**[Open the live prototype](https://gnanaram23.github.io/Product-Concepts---Commercial-/pharma-action-builder/)** · [Netlify deployment](https://pharma-action-builder.netlify.app/) · [Concept document](docs/action-builder-concept.md) · [PRD](docs/action-builder-prd.md)
 
 ![HCP Engagement Console overview](screens/02-hec-overview.png)
 
@@ -40,10 +40,22 @@ Field representatives, commercial analytics and data science teams, commercial e
 
 All HCP names and figures in the screens are fictional.
 
+## The workbench trains real models
+
+In **Analytics Workbench → Create Model**, clicking *Get Result* trains a model in the browser ([`prototype/ml.js`](prototype/ml.js), no libraries). The model learns from about 8,000 synthetic HCP touches. Each touch records the tactic, attributes such as specialty, decile, digital affinity, CLM engagement and KOL status, and whether new prescriptions rose within 30 days.
+
+- **Algorithms written from scratch:** gradient-boosted trees (XGBoost-style), random forest, logistic regression and CART.
+- **Honest evaluation:** the train/test split is by HCP. The results show ROC AUC, accuracy against the always-"no" baseline, precision, recall, F1, a confusion matrix and permutation importance.
+- **Next Best Action:** each held-out HCP gets the tactic with the highest expected value, which is P(response) × the value of a response minus the tactic's cost. This policy is compared with sending everyone the single best channel.
+
+With the default settings, gradient boosting reaches a test AUC of about 0.70. Its NBA policy adds about 27% expected value over the best one-channel policy. Logistic regression cannot learn channel-by-HCP interactions, so it gains nothing. Trained models can be sent to Monitoring with their real metrics.
+
+![Trained model with next best actions](screens/15-awb-trained-model.png)
+
 ## Prototype
 
-[`prototype/index.html`](prototype/index.html) is a single-file, front-end prototype with mock data. Open it in any browser; there's nothing to install.
+[`prototype/`](prototype/) holds two static files, `index.html` and `ml.js`. Open `index.html` in any browser; there is nothing to install. Hosting options are in [DEPLOY.md](../DEPLOY.md).
 
 ## Status
 
-Concept v2.0. The prototype shows the target experience; the AutoML engine, CRM integration and feedback loop are specified in the [PRD](docs/action-builder-prd.md) but not built.
+Concept v2.0. The model training, evaluation and NBA scoring work on synthetic data. CRM integration, live campaign data and the closed feedback loop are specified in the [PRD](docs/action-builder-prd.md) but not built. The HCP Engagement Console screens use sample data.

@@ -288,6 +288,7 @@ button,input,select{font-family:'Inter',sans-serif}
 
 </div><!-- #app -->
 
+<script src="ml.js"></script>
 <script>
 // ════════════════════════════════════════════════
 //  DATA
@@ -990,7 +991,9 @@ const AWB_SOURCES={
 };
 
 function buildCreateHTML(){
-  const dpRows=[['Dr. Jon Velter','DRUG X','$9,540',1,'$3,200','$1,100'],['Dr. Jon Velter','DRUG Y','$9,540',2,'$4,100','$1,100'],['Dr. Maria Santos','DRUG X','$12,200',3,'$5,600','$2,300'],['Dr. Alan Wei','DRUG X','$7,800',1,'$2,900','$900'],['Dr. Priya Iyer','DRUG Y','$11,400',3,'$4,800','$1,700']];
+  const ds=PAB_ML.generate();
+  const dpRows=ds.rows.slice(0,6).map(r=>[r.name,r.specialty,r.tactic,r.digital.toFixed(2),r.clm.toFixed(2),r.decile,r.responded?'Yes':'No']);
+  const featOpts=PAB_ML.FEATURES.filter(f=>f.key!=='tactic');
   return `<div style="padding:24px 26px;display:flex;flex-direction:column;gap:16px">
     <div class="fu"><div class="sec-title">Analytics Workbench <span style="color:var(--ink4);font-weight:400;font-size:17px">&middot; Create Model</span></div><div class="sec-sub">Configure your AutoML model in five steps</div></div>
     <!-- Step 1 -->
@@ -1013,19 +1016,23 @@ function buildCreateHTML(){
     <!-- Step 3+4 -->
     <div style="display:grid;grid-template-columns:1fr 300px;gap:14px">
       <div class="card fu d3" style="padding:20px">
-        <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px"><div class="step-pill">3</div><div class="card-title">Data Presence List</div></div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px"><div class="step-pill">3</div><div class="card-title">Data Presence List</div></div>
+        <div style="font-size:12px;color:var(--ink4);margin-bottom:12px">${ds.rows.length.toLocaleString()} HCP touches across ${ds.hcps.length.toLocaleString()} HCPs (synthetic, seeded). First rows:</div>
         <table class="tbl">
-          <thead><tr><th>#</th><th>HCP Name</th><th>Drug</th><th>Sales Value</th><th>Calls</th><th>Mktg Spend</th><th>Sample Cost</th></tr></thead>
+          <thead><tr><th>#</th><th>HCP Name</th><th>Specialty</th><th>Tactic</th><th>Digital Affinity</th><th>CLM Score</th><th>Decile</th><th>Responded</th></tr></thead>
           <tbody>${dpRows.map((row,i)=>`<tr style="background:${i%2===0?'#fff':'var(--sur2)'}"><td style="color:var(--ink4)">${i+1}</td>${row.map((c,j)=>`<td style="font-weight:${j===0?600:400}">${c}</td>`).join('')}</tr>`).join('')}</tbody>
         </table>
       </div>
       <div class="card fu d4" style="padding:20px">
         <div style="display:flex;align-items:center;gap:9px;margin-bottom:14px"><div class="step-pill">4</div><div class="card-title">Feature Extraction</div></div>
         <div style="display:flex;flex-direction:column;gap:11px">
-          <div class="field"><label class="field-label">Independent Variables</label><select class="sel"><option value="">Select variables</option><option>Email Open Rate</option><option>Digital Affinity Index</option><option>CLM Engagement Score</option><option>Sales Call Frequency</option><option>KOL Affiliation Score</option></select></div>
-          <div class="field"><label class="field-label">Target Variable *</label><select class="sel"><option value="">Select target</option><option>Sales Value (Scripts)</option><option>HCP Response Rate</option><option>Prescribing Volume</option></select></div>
-          <div class="field"><label class="field-label">Co-variates</label><select class="sel"><option value="">Select</option><option>Territory Region</option><option>Specialty</option><option>Drug Product</option></select></div>
-          <button class="btn btn-dark">Create Model</button>
+          <div class="field"><label class="field-label">Independent Variables</label>
+            <div id="featBox" style="display:flex;flex-direction:column;gap:4px;max-height:170px;overflow:auto;padding:8px 10px;border:1.5px solid var(--bdr);border-radius:8px;background:#fff">
+              <label style="font-size:12px;color:var(--ink4)"><input type="checkbox" checked disabled style="accent-color:var(--pri)"> Tactic (always included)</label>
+              ${featOpts.map(f=>`<label style="font-size:12.5px;display:flex;gap:6px;align-items:center;cursor:pointer"><input type="checkbox" value="${f.key}" checked style="accent-color:var(--pri)"> ${f.label}</label>`).join('')}
+            </div>
+          </div>
+          <div class="field"><label class="field-label">Target Variable *</label><select class="sel"><option>HCP responded (NRx up within 30 days of the touch)</option></select></div>
         </div>
       </div>
     </div>
@@ -1040,16 +1047,16 @@ function buildCreateHTML(){
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="mfr" value="sup" checked style="accent-color:var(--pri)"> Supervised</label>
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="mfr" value="unsup" style="accent-color:var(--pri)"> Unsupervised</label>
         </div>
-        <select class="sel" style="width:220px" id="algoSel"><option value="">Select Algorithm</option><option>XGBoost</option><option>Random Forest</option><option>Deep Neural Network (DNN)</option><option>Gradient Boosted Regression</option></select>
+        <select class="sel" style="width:250px" id="algoSel"><option value="gbm">Gradient Boosting (XGBoost-style)</option><option value="rf">Random Forest</option><option value="logreg">Logistic Regression</option><option value="tree">Decision Tree (CART)</option></select>
         <div style="display:flex;gap:8px;align-items:flex-end">
-          <div class="field" style="width:68px"><label class="field-label">Test %</label><input class="inp" id="testPct" value="20"/></div>
-          <div class="field" style="width:68px"><label class="field-label">Train %</label><input class="inp" id="trainPct" value="80"/></div>
+          <div class="field" style="width:68px"><label class="field-label">Test %</label><input class="inp" id="testPct" value="20" oninput="syncSplit('test')"/></div>
+          <div class="field" style="width:68px"><label class="field-label">Train %</label><input class="inp" id="trainPct" value="80" oninput="syncSplit('train')"/></div>
           <button class="btn btn-ghost btn-sm" onclick="clearModel()">Clear</button>
           <button class="btn btn-pri btn-sm" id="runBtn" onclick="runModel()">Get Result &#x25BA;</button>
         </div>
       </div>
       <div id="modelResult" style="margin-top:14px">
-        <div style="background:var(--sur2);border-radius:10px;padding:18px;text-align:center;color:var(--ink4);font-size:13px;border:1.5px dashed var(--bdr)">Configure parameters above and click Get Result</div>
+        <div style="background:var(--sur2);border-radius:10px;padding:18px;text-align:center;color:var(--ink4);font-size:13px;border:1.5px dashed var(--bdr)">Choose the variables and an algorithm, then click Get Result. Training runs in your browser on a held-out split by HCP.</div>
       </div>
     </div>
   </div>`;
@@ -1075,17 +1082,78 @@ function toggleAWBData(d){ awbAdded=awbAdded.includes(d)?awbAdded.filter(x=>x!==
 function removeAWBData(d){ awbAdded=awbAdded.filter(x=>x!==d); const g=el('dsGrid'); if(g) g.innerHTML=buildDSGrid(); }
 function clearModel(){ const a=el('algoSel'); if(a) a.value=''; const t=el('testPct'); if(t) t.value=''; const r=el('trainPct'); if(r) r.value=''; }
 
+function syncSplit(which){
+  const t=el('testPct'), r=el('trainPct'); if(!t||!r) return;
+  if(which==='test') r.value=Math.max(0,100-(+t.value||0)); else t.value=Math.max(0,100-(+r.value||0));
+}
+
+let awbModelCount=MODELS.length;
+let lastResult=null;
+
+function pct(x,d=0){ return (x*100).toFixed(d)+'%'; }
+
 function runModel(){
   const btn=el('runBtn'); if(!btn) return;
-  btn.textContent='Running...'; btn.disabled=true;
+  const algo=(el('algoSel')||{}).value||'gbm';
+  const trainPct=Math.min(95,Math.max(50,+((el('trainPct')||{}).value)||80));
+  const features=['tactic',...Array.from(document.querySelectorAll('#featBox input[value]:checked')).map(i=>i.value)];
+  btn.textContent='Training...'; btn.disabled=true;
   const res=el('modelResult');
-  if(res) res.innerHTML=`<div style="background:var(--sur2);border-radius:10px;padding:18px;text-align:center;border:1.5px solid var(--bdr)"><div style="font-size:24px;margin-bottom:8px">&#9881;&#65039;</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Training model...</div><div style="font-size:12px;color:var(--ink4);margin-bottom:12px">Applying algorithm &middot; ${awbAdded.length} datasets</div>${bar(65,100,'var(--pri)',5)}</div>`;
+  if(res) res.innerHTML=`<div style="background:var(--sur2);border-radius:10px;padding:18px;text-align:center;border:1.5px solid var(--bdr)"><div style="font-size:24px;margin-bottom:8px">&#9881;&#65039;</div><div style="font-weight:600;font-size:13px;margin-bottom:4px">Training ${PAB_ML.ALGORITHMS[algo].label}...</div><div style="font-size:12px;color:var(--ink4);margin-bottom:12px">${features.length} variables &middot; ${trainPct}:${100-trainPct} split by HCP</div>${bar(65,100,'var(--pri)',5)}</div>`;
   setTimeout(()=>{
-    if(el('runBtn')){ el('runBtn').textContent='Get Result &#x25BA;'; el('runBtn').disabled=false; }
-    const algo=(el('algoSel')||{}).value||'XGBoost';
-    const res2=el('modelResult');
-    if(res2) res2.innerHTML=`<div style="background:var(--grn-lt);border-radius:10px;padding:14px;border:1.5px solid #A7F3D0"><div style="font-weight:700;color:#047857;margin-bottom:4px">&#x2705; Model #AWB-003 created!</div><div style="font-size:12.5px;margin-bottom:4px">Algorithm: <strong>${algo}</strong> &middot; Accuracy: <strong>74%</strong> &middot; ${tag('Staging','tag-amb')}</div><div style="font-size:12px;color:var(--ink3)">Switch to Monitoring to validate and deploy.</div></div>`;
-  },2200);
+    let r;
+    try { r=PAB_ML.train({algorithm:algo,trainPct,features}); }
+    catch(e){ if(res) res.innerHTML=`<div style="color:var(--red)">Training failed: ${e.message}</div>`; btn.textContent='Get Result ►'; btn.disabled=false; return; }
+    lastResult=r;
+    btn.textContent='Get Result ►'; btn.disabled=false;
+    const m=r.metrics, maxDrop=Math.max(...r.importance.map(f=>f.drop),1e-6);
+    const id='#AWB-'+String(awbModelCount+1).padStart(3,'0');
+    const up=r.policy.uplift;
+    if(res) res.innerHTML=`
+    <div style="background:var(--grn-lt);border-radius:10px;padding:14px;border:1.5px solid #A7F3D0;margin-bottom:12px">
+      <div style="font-weight:700;color:#047857;margin-bottom:4px">&#x2705; Model ${id} trained in ${(r.trainMs/1000).toFixed(1)} s</div>
+      <div style="font-size:12.5px">${r.algorithm} &middot; trained on ${r.trainRows.toLocaleString()} touches from ${r.trainHcps.toLocaleString()} HCPs, tested on ${r.testRows.toLocaleString()} touches from ${r.testHcps.toLocaleString()} HCPs it never saw &middot; ${tag('Staging','tag-amb')}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px">
+      ${[['ROC AUC',m.auc.toFixed(3),'0.5 = random'],['Accuracy',pct(m.accuracy,1),'Always "no": '+pct(r.majority,1)],['Precision',pct(m.precision,1),'Of predicted responders'],['Recall',pct(m.recall,1),'Of actual responders'],['F1',pct(m.f1,1),'Threshold '+r.threshold.toFixed(2)]].map(([l,v,s])=>`<div class="card" style="padding:12px"><div style="font-size:10.5px;color:var(--ink4);font-weight:700;text-transform:uppercase;letter-spacing:.5px">${l}</div><div style="font-size:20px;font-weight:800;margin:4px 0">${v}</div><div style="font-size:10.5px;color:var(--ink4)">${s}</div></div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="card" style="padding:14px">
+        <div class="card-title" style="margin-bottom:8px">What drives response (permutation importance)</div>
+        ${r.importance.map(f=>`<div style="margin-bottom:7px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px"><span>${f.label}</span><span style="color:var(--ink4)">AUC &minus;${Math.max(0,f.drop).toFixed(3)}</span></div>${bar(Math.max(0,f.drop),maxDrop,'var(--pri)',5)}</div>`).join('')}
+        <div style="font-size:11px;color:var(--ink4);margin-top:6px">How much test AUC falls when a variable is shuffled. Larger = more important.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div class="card-title" style="margin-bottom:8px">Confusion matrix (test set)</div>
+        <div class="conf-grid" style="margin-bottom:10px">${[['True Positive',m.tp,'var(--grn)'],['False Positive',m.fp,'var(--red)'],['False Negative',m.fn,'var(--amb)'],['True Negative',m.tn,'var(--grn)']].map(([l,v,c])=>`<div class="conf-cell"><div style="font-size:9.5px;color:var(--ink4);margin-bottom:3px;font-weight:600">${l}</div><div style="font-size:22px;font-weight:700;color:${c}">${v}</div></div>`).join('')}</div>
+        <div class="card-title" style="margin:12px 0 6px">Next Best Action policy</div>
+        <div style="font-size:12.5px;line-height:1.55">Choosing each HCP's tactic with this model is worth <strong style="color:${up>=0?'#047857':'var(--red)'}">${up>=0?'+':''}${(up*100).toFixed(1)}%</strong> expected value versus sending everyone <strong>${r.policy.bestSingle}</strong> (the best single channel), scored on the ${r.testHcps.toLocaleString()} held-out HCPs.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">${r.mix.map(x=>tag(x.tactic+': '+x.n, x.n?'tag-pri':'tag-nav')).join('')}</div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:8px">Recommended next best actions &middot; top held-out HCPs by expected value</div>
+      <table class="tbl" style="font-size:12.5px"><thead><tr><th>HCP</th><th>Specialty</th><th>Decile</th><th>Best action</th><th>P(response)</th><th>Expected value</th><th>Runner-up</th></tr></thead>
+      <tbody>${r.nba.slice(0,8).map((x,i)=>`<tr style="background:${i%2?'var(--sur2)':'#fff'}"><td style="font-weight:600">${x.hcp.name}</td><td>${x.hcp.specialty}</td><td>${x.hcp.decile}</td><td>${tag(x.best.tactic,'tag-pri')}</td><td>${pct(x.best.p,0)}</td><td style="font-weight:700">$${Math.round(x.best.ev).toLocaleString()}</td><td style="color:var(--ink3)">${x.next.tactic} (${pct(x.next.p,0)})</td></tr>`).join('')}</tbody></table>
+      <div style="font-size:11px;color:var(--ink4);margin-top:8px">Expected value = P(response) &times; $${PAB_ML.VALUE_PER_RESPONSE.toLocaleString()} value of a response &minus; cost of the tactic (${Object.entries(PAB_ML.TACTIC_COST).map(([t,c])=>t+' $'+c).join(', ')}). Illustrative economics.</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center"><button class="btn btn-pri btn-sm" onclick="registerModel('${id}')">Send ${id} to Monitoring &#x25BA;</button><span style="font-size:12px;color:var(--ink4)">Try Logistic Regression next: it cannot learn channel-by-HCP interactions, so its NBA policy gains little.</span></div>`;
+  },60);
+}
+
+function registerModel(id){
+  const r=lastResult; if(!r) return;
+  const m=r.metrics;
+  if(!MODELS.some(x=>x.id===id)){
+    MODELS.push({id,name:'HCP NBA — response model',uc:'Predict HCP response to each tactic and pick the next best action',algo:r.algorithm,st:'Staging',created:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),
+      vuln:Math.round((1-m.auc)*100),fn:Math.round(m.fn/(m.fn+m.tp)*100),fp:Math.round(m.fp/(m.fp+m.tn)*100),split:`${Math.round(r.trainHcps/(r.trainHcps+r.testHcps)*100)}:${Math.round(r.testHcps/(r.trainHcps+r.testHcps)*100)}`,acc:Math.round(m.accuracy*100),
+      cm:{tp:m.tp,fp:m.fp,fn:m.fn,tn:m.tn,prec:Math.round(m.precision*100),rec:Math.round(m.recall*100),f1:Math.round(m.f1*100),auc:m.auc},
+      feats:r.importance.slice(0,5).map(f=>({n:f.label,co:+f.drop.toFixed(3),p:null,hi:f.drop>0.02})),
+      focus:`Top drivers: ${r.importance.slice(0,3).map(f=>f.label).join(', ')}. The NBA policy adds ${(r.policy.uplift*100).toFixed(1)}% expected value over sending everyone ${r.policy.bestSingle}. Validate on live campaign data before deployment.`});
+    awbModelCount++;
+  }
+  renderAWBModelList();
+  awbGo('monitor');
 }
 
 // ════════════════════════════════════════════════
@@ -1103,8 +1171,8 @@ function buildMonitorHTML(){
       const accCls=m.acc>=75?'tag-grn':m.acc>=65?'tag-amb':'tag-red';
       const stCls=m.st==='Production'?'tag-grn':'tag-amb';
       const stDot=m.st==='Production'?'#10B981':'#F59E0B';
-      const confCells=[['True Positive (TP)','87','var(--grn)'],['False Positive (FP)',m.fp,'var(--red)'],['False Negative (FN)',m.fn,'var(--amb)'],['True Negative (TN)','79','var(--grn)']];
-      const prec=82,rec=100-m.fn,f1=Math.round(2*prec*rec/(prec+rec));
+      const confCells=m.cm?[['True Positive (TP)',m.cm.tp,'var(--grn)'],['False Positive (FP)',m.cm.fp,'var(--red)'],['False Negative (FN)',m.cm.fn,'var(--amb)'],['True Negative (TN)',m.cm.tn,'var(--grn)']]:[['True Positive (TP)','87','var(--grn)'],['False Positive (FP)',m.fp,'var(--red)'],['False Negative (FN)',m.fn,'var(--amb)'],['True Negative (TN)','79','var(--grn)']];
+      const prec=m.cm?m.cm.prec:82,rec=m.cm?m.cm.rec:100-m.fn,f1=m.cm?m.cm.f1:Math.round(2*prec*rec/(prec+rec));
       return `<div class="card fu d${mi+1}" style="padding:22px">
         <!-- Header -->
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:15px;border-bottom:1px solid var(--bdr)">
@@ -1145,7 +1213,7 @@ function buildMonitorHTML(){
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ink4);margin-bottom:10px">Model Significance Output</div>
             <table class="tbl" style="font-size:12.5px">
               <thead><tr><th>Feature</th><th>Co-efficient</th><th>p-value</th><th>Follow</th></tr></thead>
-              <tbody>${m.feats.map((f,i)=>`<tr style="background:${i%2===0?'#fff':'var(--sur2)'}"><td style="font-weight:500">${f.n}</td><td style="font-weight:700;color:${f.co<0?'var(--red)':'var(--grn)'}">${f.co>0?'+':''}${f.co}</td><td style="font-weight:600;color:${f.p<0.01?'var(--grn)':f.p<0.05?'var(--amb)':'var(--red)'}">${f.p}</td><td><div style="width:10px;height:10px;border-radius:50%;background:${f.hi?'var(--pri)':f.p<0.05?'var(--amb)':'#D1D5DB'}"></div></td></tr>`).join('')}</tbody>
+              <tbody>${m.feats.map((f,i)=>`<tr style="background:${i%2===0?'#fff':'var(--sur2)'}"><td style="font-weight:500">${f.n}</td><td style="font-weight:700;color:${f.co<0?'var(--red)':'var(--grn)'}">${f.co>0?'+':''}${f.co}</td><td style="font-weight:600;color:${f.p===null?'var(--ink4)':f.p<0.01?'var(--grn)':f.p<0.05?'var(--amb)':'var(--red)'}">${f.p===null?'n/a (importance)':f.p}</td><td><div style="width:10px;height:10px;border-radius:50%;background:${f.hi?'var(--pri)':f.p<0.05?'var(--amb)':'#D1D5DB'}"></div></td></tr>`).join('')}</tbody>
             </table>
           </div>
           <div style="background:rgba(67,97,238,.07);border-radius:11px;padding:16px;border:1.5px solid var(--pri-md)">

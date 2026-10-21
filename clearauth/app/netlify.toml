@@ -1,0 +1,14 @@
+# Static deploy of the web app. With no server behind it, the app runs its
+# API in the browser (demo mode) automatically.
+[build]
+  command = "corepack enable && pnpm install --frozen-lockfile && pnpm --filter @workspace/clearauth run build"
+  publish = "artifacts/clearauth/dist/public"
+
+[build.environment]
+  NODE_VERSION = "22"
+  VITE_API_MODE = "demo"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

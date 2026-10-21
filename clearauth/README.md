@@ -2,7 +2,7 @@
 
 ClearAuth puts the provider, the patient and the payer on one shared view of a prior authorization case, with AI help at the points where cases usually stall: incomplete documentation, unclear status, and slow clinical review.
 
-**[Open the live prototype](https://pharma-pa-ra-hub--gnanaramm.replit.app/)** · [Concept document](docs/clearauth-concept.md) · [PRD](docs/clearauth-prd.md)
+**[Open the live prototype](https://gnanaram23.github.io/Product-Concepts---Commercial-/clearauth/)** (runs in your browser) · [Replit deployment](https://pharma-pa-ra-hub--gnanaramm.replit.app/) · [Concept document](docs/clearauth-concept.md) · [PRD](docs/clearauth-prd.md)
 
 ![Provider dashboard](screens/provider-dashboard.png)
 
@@ -57,7 +57,7 @@ Each stakeholder feels a different version of this:
 | ![Patient journey](screens/patient-journey.png) Patient: journey tracker | ![Patient documents](screens/patient-documents.png) Patient: documents |
 | ![Payer dashboard](screens/payer-dashboard.png) Payer: review queue | ![Payer case](screens/payer-case-details.png) Payer: case details |
 
-Demo users: Dr. Sarah Mitchell (provider), Robert Brown (patient), Sam Wilson (payer). All names and cases are fictional.
+Demo users: Dr. Sarah Mitchell (provider), James Wilson (patient), Sam Wilson (payer). All names and cases are fictional.
 
 ## What's built
 
@@ -65,10 +65,17 @@ Demo users: Dr. Sarah Mitchell (provider), Robert Brown (patient), Sam Wilson (p
 |---|---|
 | Front end | React 18, TypeScript, Vite, Tailwind, shadcn/ui |
 | API | Express 5 and TypeScript, with an OpenAPI 3.1 spec and generated Zod validators and React Query hooks (Orval) |
+| Domain logic | `lib/core`: data store, policy engine, assistant and one framework-free API handler, shared by the server and the in-browser demo |
 | Data | In-memory store with seeded demo cases (a Drizzle/PostgreSQL schema is scaffolded for later) |
 | Monorepo | pnpm workspaces |
 
-**AI in this version:** the assistant responses are scripted demo content that show the intended output for each role. Connecting a live LLM, with retrieval over payer coverage policies, is the next build step.
+### The coverage-policy engine and assistant
+
+A rules engine ([`app/lib/core/src/policies.ts`](app/lib/core/src/policies.ts)) holds coverage criteria for Humira, Rinvoq, Skyrizi, Dupixent, Ozempic, Mounjaro and Keytruda across their main indications. The criteria cover the on-label ICD-10 diagnosis, step therapy, severity, TB screening and required documents. Every case is checked field by field. For each criterion the result shows met, not met or unclear, the evidence used and how to close the gap. It also gives a 0–100 policy fit score and a recommendation.
+
+![Policy check in the assistant](screens/provider-ai-policy-check.png)
+
+The assistant builds every answer from the selected case, the policy result and a drug reference table. That covers approval outlook, document checklists, letters of medical necessity, appeal and determination drafts, side effects in plain language, formulary alternatives and queue triage. If an LLM is configured, which can be any OpenAI-compatible endpoint including a free local Ollama model, it rewrites the grounded answer for the user's question. If the LLM fails, the rules-engine answer is shown instead. The policies are illustrative, modelled on how US plans write criteria, and are not any real payer's policy.
 
 ### API endpoints
 
@@ -81,22 +88,26 @@ Demo users: Dr. Sarah Mitchell (provider), Robert Brown (patient), Sam Wilson (p
 | POST | `/api/cases/:id/appeal` | File an appeal |
 | GET | `/api/patients`, `/api/patients/:id` | Patient records |
 | GET | `/api/reauth` | Cases approaching re-authorization |
-| POST | `/api/ai` | Role-aware assistant |
+| GET | `/api/cases/:id/policy` | Coverage-policy evaluation |
+| GET | `/api/meta` | Server or demo mode, and whether an LLM is configured |
+| POST | `/api/ai` | Role-aware assistant grounded in a case (`caseId`) |
 
 ### Run it locally
 
-Requires Node.js 20+ and pnpm.
+Requires Node.js 20+ and pnpm (`corepack enable`).
 
 ```bash
 cd app
 pnpm install
-pnpm --filter @workspace/api-server run dev                          # API
-PORT=5173 BASE_PATH=/ pnpm --filter @workspace/clearauth run dev     # front end
+pnpm run dev:api     # API on :8080
+pnpm run dev:web     # web app on :5173
 ```
+
+With no API running, the web app switches to **demo mode** by itself: the same API code runs in the browser and saves changes to local storage. That is how it runs on GitHub Pages, Netlify and Vercel. For the full server, use `docker build -t clearauth app && docker run -p 8080:8080 clearauth`, or the Render blueprint. See [DEPLOY.md](../DEPLOY.md).
 
 ## Roadmap
 
-1. Live LLM integration for documentation checks and appeal drafting, grounded in payer policy documents
+1. Retrieval over real payer policy documents to replace the illustrative criteria
 2. Real FHIR-based submission against a payer sandbox
 3. PostgreSQL persistence and role-based authentication
 4. Payer analytics: denial reasons, turnaround time, first-pass approval rate

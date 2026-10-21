@@ -8,6 +8,17 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Restores a deep link after a static host sent the visitor through 404.html (see the Pages workflow).
+      (function () {
+        var q = new URLSearchParams(window.location.search);
+        var p = q.get("__path");
+        if (!p) return;
+        q.delete("__path");
+        var rest = q.toString();
+        history.replaceState(null, "", p + (rest ? "?" + rest : "") + window.location.hash);
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

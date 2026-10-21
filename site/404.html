@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Redirecting</title>
+<script>
+  // GitHub Pages serves this page for any unknown path. The React apps use
+  // client-side routes (e.g. /clearauth/provider/dashboard), so send the
+  // visitor to the app's entry page and let it restore the route.
+  (function () {
+    var l = window.location;
+    var parts = l.pathname.split("/");
+    // Project sites live at /<repo>/<app>/...; user sites at /<app>/...
+    var i = ["cortex", "clearauth"].indexOf(parts[1]) >= 0 ? 1 : 2;
+    var app = parts[i];
+    if (["cortex", "clearauth"].indexOf(app) >= 0) {
+      var base = parts.slice(0, i + 1).join("/") + "/";
+      var extra = l.search ? "&" + l.search.slice(1) : "";
+      l.replace(base + "?__path=" + encodeURIComponent(l.pathname) + extra + l.hash);
+    }
+  })();
+</script>
+<style>body{font:16px/1.5 system-ui,sans-serif;margin:15vh auto;max-width:520px;padding:0 16px;color:#333;background:#fff}@media(prefers-color-scheme:dark){body{background:#111316;color:#ddd}a{color:#8fb0ff}}</style>
+</head>
+<body>
+  <h1>Page not found</h1>
+  <p><a id="home" href="/">Back to the product concepts</a></p>
+  <script>
+    var seg = window.location.pathname.split("/")[1];
+    if (seg && window.location.hostname.endsWith("github.io")) document.getElementById("home").href = "/" + seg + "/";
+  </script>
+</body>
+</html>

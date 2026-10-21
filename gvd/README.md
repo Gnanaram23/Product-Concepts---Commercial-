@@ -2,7 +2,7 @@
 
 An interactive map of the end-to-end process for creating a Global Value Dossier: every evidence module, the team responsible for it, the hand-offs between them, and the health technology assessment (HTA) bodies and payers the dossier is ultimately written for.
 
-**[Open the interactive map](https://gvd-processflow.netlify.app/)** · [Source](gvd-process-map.html) (single HTML file; download it and open in a browser)
+**[Open the interactive map](https://gnanaram23.github.io/Product-Concepts---Commercial-/gvd/)** · [Netlify deployment](https://gvd-processflow.netlify.app/) · [Source](gvd-process-map.html) (single HTML file; download it and open in a browser)
 
 ## Why this exists
 

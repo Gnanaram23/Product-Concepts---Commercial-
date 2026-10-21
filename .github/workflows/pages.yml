@@ -1,0 +1,82 @@
+# Builds all four prototypes into one static site and publishes it to GitHub Pages.
+#
+# One-time setup (also needed after forking):
+#   Settings > Actions > General: allow actions (forks: click "I understand... enable workflows")
+#   Settings > Pages > Build and deployment > Source: GitHub Actions
+# Then push to main, or run this workflow from the Actions tab.
+name: Deploy prototypes to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SITE_BASE: /${{ github.event.repository.name }}/
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: clearauth/app/package.json
+
+      - name: Build Cortex
+        working-directory: cortex/app
+        run: |
+          npm ci
+          BASE_PATH="${SITE_BASE}cortex/" npm run build
+
+      - name: Build ClearAuth (in-browser demo mode)
+        working-directory: clearauth/app
+        run: |
+          pnpm install --frozen-lockfile
+          VITE_API_MODE=demo BASE_PATH="${SITE_BASE}clearauth/" pnpm --filter @workspace/clearauth run build
+
+      - name: Check the Action Builder models train
+        run: node -e "globalThis.performance=require('perf_hooks').performance; require('./pharma-action-builder/prototype/ml.js'); const r=PAB_ML.train({algorithm:'gbm'}); console.log('Test AUC', r.metrics.auc.toFixed(3)); if(!(r.metrics.auc>0.6)) process.exit(1)"
+
+      - name: Assemble the site
+        run: |
+          mkdir -p _site/assets _site/pharma-action-builder _site/gvd
+          cp -r cortex/app/dist _site/cortex
+          cp -r clearauth/app/artifacts/clearauth/dist/public _site/clearauth
+          cp pharma-action-builder/prototype/index.html pharma-action-builder/prototype/ml.js _site/pharma-action-builder/
+          cp gvd/gvd-process-map.html _site/gvd/index.html
+          cp site/index.html site/404.html _site/
+          cp cortex/screens/workspace-live-query.png _site/assets/cortex.png
+          cp clearauth/screens/ai-policy-check-detail.png _site/assets/clearauth.png
+          cp pharma-action-builder/screens/15-awb-trained-model.png _site/assets/pharma-action-builder.png
+          cp gvd/screens/process-map.png _site/assets/gvd.png
+          sed -i "s#__REPO__#${{ github.server_url }}/${{ github.repository }}#g" _site/index.html
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

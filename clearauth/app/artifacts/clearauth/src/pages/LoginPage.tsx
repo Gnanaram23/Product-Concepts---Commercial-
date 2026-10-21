@@ -43,7 +43,7 @@ export default function LoginPage() {
             </div>
             <div>
               <p className="font-bold text-foreground">Login as Patient</p>
-              <p className="text-sm text-muted-foreground">Robert Brown</p>
+              <p className="text-sm text-muted-foreground">James Wilson</p>
             </div>
           </button>
 

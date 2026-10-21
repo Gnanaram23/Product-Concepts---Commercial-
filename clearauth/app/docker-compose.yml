@@ -1,0 +1,25 @@
+# docker compose up                      -> http://localhost:8080 (rules-engine assistant)
+# docker compose --profile llm up        -> also starts Ollama; then run once:
+#   docker compose exec ollama ollama pull llama3.2
+services:
+  clearauth:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      # Leave empty for the rules engine only. For OpenAI set LLM_API_KEY.
+      # With the "llm" profile, point at the bundled Ollama container:
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["llm"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama:/root/.ollama
+
+volumes:
+  ollama:

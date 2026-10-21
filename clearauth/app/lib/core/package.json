@@ -1,0 +1,10 @@
+{
+  "name": "@workspace/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ClearAuth domain logic shared by the API server and the in-browser demo: data store, coverage-policy engine, assistant and API handler.",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

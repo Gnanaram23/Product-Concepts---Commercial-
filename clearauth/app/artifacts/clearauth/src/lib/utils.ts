@@ -47,8 +47,8 @@ export const USER_PROFILES = {
   patient: {
     id: "PT-001",
     role: "patient",
-    name: "Robert Brown",
-    initials: "RB",
+    name: "James Wilson",
+    initials: "JW",
     title: "Patient",
     color: "bg-[hsl(var(--green))] text-white"
   },

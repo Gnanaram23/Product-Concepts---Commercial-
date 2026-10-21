@@ -39,7 +39,9 @@ export function NewPAModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await createCaseMutation.mutateAsync({ data });
+      const res = await createCaseMutation.mutateAsync({
+        data: { ...data, documents: files.length ? files.map(f => f.name) : undefined },
+      });
       toast({
         title: "PA request submitted successfully!",
         description: `Case ID: ${res.id}`,

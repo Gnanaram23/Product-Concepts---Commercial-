@@ -2,9 +2,9 @@
 
 Cortex turns a business question ("What drove rebate variance last quarter?") into a governed, explainable answer drawn from a company's commercial data, without the user writing SQL or hunting through dashboards.
 
-**[Open the live prototype](https://data-sense-forge-87.lovable.app)** · [Concept document](docs/cortex-concept.md) · [PRD](docs/cortex-prd.md)
+**[Open the analyst workspace](https://gnanaram23.github.io/Product-Concepts---Commercial-/cortex/workspaces/1)** · [Lovable deployment](https://data-sense-forge-87.lovable.app) · [Concept document](docs/cortex-concept.md) · [PRD](docs/cortex-prd.md)
 
-![Cortex analyst workspace](screens/workspace-1.png)
+![Cortex answering a rebate question with a chart, sources and the SQL it ran](screens/workspace-live-query.png)
 
 ## The problem
 
@@ -72,14 +72,28 @@ Natural-language questions, metadata-driven asset discovery, SQL generation and 
 
 These are design targets, not measured results.
 
-## Prototype
+## What works in the prototype
 
-`app/` holds the front-end prototype: React, TypeScript, Vite, Tailwind and shadcn/ui, running on mock data. To run it locally:
+The analyst workspace answers questions from real queries:
+
+- **Semantic layer.** Governed definitions of gross sales, net sales, rebates, chargebacks, admin fees, units, gross-to-net % and net price per unit. They can be broken down by segment, product, category, region, customer, contract or quarter, over any period in the data. A question becomes a plan, then SQL ([`app/src/engine/semantic.ts`](app/src/engine/semantic.ts)).
+- **Query execution in the browser.** AlaSQL runs over a seeded synthetic contracting dataset: 23 customers across PBMs, Part D plans, GPOs, health systems, specialty pharmacies and 340B; six fictional brands; and quarterly gross-to-net from 2024 to 2025.
+- **Answers that can be traced.** Each reply has a summary computed from the result, plus a table, a chart (bar, trend or gross-to-net waterfall), the datasets used, the agent steps with timings, and the exact SQL.
+- **Governance.** Restricted datasets are blocked before anything runs, and the user is offered an access request. Uploaded CSVs become uncertified tables.
+- **Optional LLM.** Connect any OpenAI-compatible model, or a local Ollama server, to handle free-form questions. Its SQL is checked to be a single read-only `SELECT` on permitted tables before it runs.
+
+![Gross-to-net waterfall](screens/workspace-gtn-waterfall.png)
+
+The other screens are clickable designs with sample content.
+
+### Run it
 
 ```bash
 cd app
-npm install
-npm run dev
+npm ci
+npm run dev        # http://localhost:8080
 ```
+
+To host it, see [DEPLOY.md](../DEPLOY.md). It is a static site: GitHub Pages, Netlify, Vercel or Docker all work.
 
 Cortex is a decision-support tool. It speeds up analysis; it does not replace the analyst's judgment.

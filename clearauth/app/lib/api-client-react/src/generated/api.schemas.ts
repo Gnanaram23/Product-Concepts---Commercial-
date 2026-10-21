@@ -107,6 +107,8 @@ export interface NewPAFormData {
   npi?: string;
   payer?: string;
   memberId?: string;
+  /** File names of supporting documents (used by the coverage-policy checks). */
+  documents?: string[];
 }
 
 export type UpdateCaseRequestStatus =
@@ -203,11 +205,18 @@ export interface AIChatRequest {
   role: AIChatRequestRole;
   feature?: string;
   message: string;
+  /** Case to ground the answer in; a relevant case is chosen if omitted. */
+  caseId?: string;
+  /** For the patient role, limits the default case to this patient. */
+  patientId?: string;
 }
 
 export interface AIChatResponse {
   response: string;
   feature?: string;
+  caseId?: string;
+  /** "rules" for the grounded rules-engine answer, "llm" when an LLM wrote it. */
+  source?: "rules" | "llm";
   timestamp: string;
 }
 

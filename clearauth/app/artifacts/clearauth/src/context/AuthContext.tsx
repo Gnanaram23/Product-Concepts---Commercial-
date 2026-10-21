@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { Role, USER_PROFILES } from "@/lib/utils";
 
 interface AuthContextType {
@@ -11,14 +11,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [role, setRole] = useState<Role | null>(null);
-
-  useEffect(() => {
-    const storedRole = localStorage.getItem("clearauth_role") as Role | null;
-    if (storedRole && USER_PROFILES[storedRole]) {
-      setRole(storedRole);
+  // Read the saved role before the first render so deep links survive a refresh.
+  const [role, setRole] = useState<Role | null>(() => {
+    try {
+      const stored = localStorage.getItem("clearauth_role") as Role | null;
+      return stored && USER_PROFILES[stored] ? stored : null;
+    } catch {
+      return null;
     }
-  }, []);
+  });
 
   const login = (newRole: Role) => {
     setRole(newRole);
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setRole(null);
     localStorage.removeItem("clearauth_role");
-    window.location.href = "/login";
+    window.location.href = `${import.meta.env.BASE_URL}login`;
   };
 
   const user = role ? USER_PROFILES[role] : null;
